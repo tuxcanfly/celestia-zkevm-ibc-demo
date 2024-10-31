@@ -2,7 +2,7 @@ go 1.22.2
 
 toolchain go1.22.3
 
-module github.com/cosmos/ibc-go/simapp
+module github.com/celestiaorg/celestia-zkevm-ibc-demo
 
 require (
 	cosmossdk.io/api v0.7.6
