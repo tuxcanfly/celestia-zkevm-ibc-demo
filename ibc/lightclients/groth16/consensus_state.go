@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/celestiaorg/celestia-app/v3/pkg/appconsts"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)
