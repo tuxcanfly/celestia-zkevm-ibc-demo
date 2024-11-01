@@ -2,18 +2,20 @@ package groth16
 
 import (
 	"bytes"
+	"context"
 	fmt "fmt"
 
+	sdkerrors "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+
+	// connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection"
+
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -48,9 +50,9 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 }
 
 // Status returns the status of the groth16 client.
-func (cs ClientState) Status(
-	ctx sdk.Context,
-	clientStore sdk.KVStore,
+func (cs ClientState) status(
+	ctx context.Context,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 ) exported.Status {
 	return exported.Active
@@ -75,9 +77,9 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	}
 }
 
-// Initialize will check that initial consensus state is a Tendermint consensus state
+// initialize will check that initial consensus state is a Tendermint consensus state
 // and will store ProcessedTime for initial consensus state as ctx.BlockTime()
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) initialize(ctx context.Context, _ codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	if _, ok := consState.(*ConsensusState); !ok {
 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, consState)
@@ -87,262 +89,295 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 	return nil
 }
 
-// VerifyClientState verifies a proof of the client state of the running chain
-// stored on the target machine
-func (cs ClientState) VerifyClientState(
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	prefix exported.Prefix,
-	counterpartyClientIdentifier string,
-	proof []byte,
-	clientState exported.ClientState,
-) error {
-	clientPrefixedPath := commitmenttypes.NewMerklePath(host.FullClientStatePath(counterpartyClientIdentifier))
-	path, err := commitmenttypes.ApplyPrefix(prefix, clientPrefixedPath)
-	if err != nil {
-		return err
-	}
+// // VerifyClientState verifies a proof of the client state of the running chain
+// // stored on the target machine
+// func (cs ClientState) VerifyClientState(
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	prefix exported.Prefix,
+// 	counterpartyClientIdentifier string,
+// 	proof []byte,
+// 	clientState exported.ClientState,
+// ) error {
+// 	clientPrefixedPath := commitmenttypes.NewMerklePath(host.FullClientStatePath(counterpartyClientIdentifier))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, clientPrefixedPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if clientState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state cannot be empty")
-	}
+// 	if clientState == nil {
+// 		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state cannot be empty")
+// 	}
 
-	_, ok := clientState.(*ClientState)
-	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client type %T, expected %T", clientState, &ClientState{})
-	}
+// 	_, ok := clientState.(*ClientState)
+// 	if !ok {
+// 		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client type %T, expected %T", clientState, &ClientState{})
+// 	}
 
-	bz, err := cdc.MarshalInterface(clientState)
-	if err != nil {
-		return err
-	}
+// 	bz, err := cdc.MarshalInterface(clientState)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
-}
+// 	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
+// }
 
-// TODO: This was deprecated! 
+// TODO: This was deprecated!
 // https://github.com/cosmos/ibc/issues/1121
 
-// VerifyClientConsensusState verifies a proof of the consensus state of the
-// Tendermint client stored on the target machine.
-func (cs ClientState) VerifyClientConsensusState(
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	counterpartyClientIdentifier string,
-	consensusHeight exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-	consensusState exported.ConsensusState,
-) error {
-	clientPrefixedPath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(counterpartyClientIdentifier, consensusHeight))
-	path, err := commitmenttypes.ApplyPrefix(prefix, clientPrefixedPath)
-	if err != nil {
-		return err
-	}
+// // VerifyClientConsensusState verifies a proof of the consensus state of the
+// // Tendermint client stored on the target machine.
+// func (cs ClientState) VerifyClientConsensusState(
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	counterpartyClientIdentifier string,
+// 	consensusHeight exported.Height,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	consensusState exported.ConsensusState,
+// ) error {
+// 	clientPrefixedPath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(counterpartyClientIdentifier, consensusHeight))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, clientPrefixedPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if consensusState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
-	}
+// 	if consensusState == nil {
+// 		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
+// 	}
 
-	_, ok := consensusState.(*ConsensusState)
-	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type %T, expected %T", consensusState, &ConsensusState{})
-	}
+// 	_, ok := consensusState.(*ConsensusState)
+// 	if !ok {
+// 		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type %T, expected %T", consensusState, &ConsensusState{})
+// 	}
 
-	bz, err := cdc.MarshalInterface(consensusState)
-	if err != nil {
-		return err
-	}
+// 	bz, err := cdc.MarshalInterface(consensusState)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
-}
+// 	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
+// }
 
-// VerifyConnectionState verifies a proof of the connection state of the
-// specified connection end stored on the target machine.
-func (cs ClientState) VerifyConnectionState(
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-	connectionID string,
-	connectionEnd exported.ConnectionI,
-) error {
-	connectionPath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	path, err := commitmenttypes.ApplyPrefix(prefix, connectionPath)
-	if err != nil {
-		return err
-	}
+// // VerifyConnectionState verifies a proof of the connection state of the
+// // specified connection end stored on the target machine.
+// func (cs ClientState) VerifyConnectionState(
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	connectionID string,
+// 	connectionEnd exported.ConnectionI,
+// ) error {
+// 	connectionPath := commitmenttypes.NewMerklePath(host.ConnectionKey(connectionID))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, connectionPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	connection, ok := connectionEnd.(connectiontypes.ConnectionEnd)
-	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid connection type %T", connectionEnd)
-	}
+// 	connection, ok := connectionEnd.(connectiontypes.ConnectionEnd)
+// 	if !ok {
+// 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid connection type %T", connectionEnd)
+// 	}
 
-	bz, err := cdc.Marshal(&connection)
-	if err != nil {
-		return err
-	}
+// 	bz, err := cdc.Marshal(&connection)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
-}
+// 	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
+// }
 
-// VerifyChannelState verifies a proof of the channel state of the specified
-// channel end, under the specified port, stored on the target machine.
-func (cs ClientState) VerifyChannelState(
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	channel exported.ChannelI,
-) error {
-	channelPath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	path, err := commitmenttypes.ApplyPrefix(prefix, channelPath)
-	if err != nil {
-		return err
-	}
+// // New VerifyChannelState method
+// // this now exists on the connection keeper
+// // when handshake happens this is called on the keeper and not the client
+// func (cs ClientState) VerifyConnectionStateNow(
+// 	ctx context.Context,
+// 	connection connectiontypes.ConnectionEnd,
+// 	height exported.Height,
+// 	proof []byte,
+// 	connectionID string,
+// 	counterpartyConnection connectiontypes.ConnectionEnd, // opposite connection
+// ) error {
+// 	connectionPath := commitmenttypes.NewMerklePath(host.ConnectionKey(connectionID))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, connectionPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	channelEnd, ok := channel.(channeltypes.Channel)
-	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
-	}
+// 	connection, ok := connectionEnd.(connectiontypes.ConnectionEnd)
+// 	if !ok {
+// 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid connection type %T", connectionEnd)
+// 	}
 
-	bz, err := cdc.Marshal(&channelEnd)
-	if err != nil {
-		return err
-	}
+// 	bz, err := cdc.Marshal(&connection)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
-}
+// 	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
+// }
+
+// // VerifyChannelState verifies a proof of the channel state of the specified
+// // channel end, under the specified port, stored on the target machine.
+// // TODO: this was also moved to the connection keeper
+// func (cs ClientState) VerifyChannelState(
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	portID,
+// 	channelID string,
+// 	channel exported.ChannelI,
+// ) error {
+// 	channelPath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, channelPath)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	channelEnd, ok := channel.(channeltypes.Channel)
+// 	if !ok {
+// 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
+// 	}
+
+// 	bz, err := cdc.Marshal(&channelEnd)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return cs.VerifyMembership(store, cdc, height, 0, 0, proof, path, bz)
+// }
 
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
-func (cs ClientState) VerifyPacketCommitment(
-	ctx sdk.Context,
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	sequence uint64,
-	commitmentBytes []byte,
-) error {
-	// check delay period has passed
-	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
-		return err
-	}
+// TODO: this was also moved to the connection keeper
+// func (cs ClientState) VerifyPacketCommitment(
+// 	ctx sdk.Context,
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	delayTimePeriod uint64,
+// 	delayBlockPeriod uint64,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	portID,
+// 	channelID string,
+// 	sequence uint64,
+// 	commitmentBytes []byte,
+// ) error {
+// 	// check delay period has passed
+// 	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+// 		return err
+// 	}
 
-	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	path, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
-	if err != nil {
-		return err
-	}
+// 	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, commitmentBytes)
-}
+// 	return cs.VerifyMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, commitmentBytes)
+// }
 
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
-func (cs ClientState) VerifyPacketAcknowledgement(
-	ctx sdk.Context,
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	sequence uint64,
-	acknowledgement []byte,
-) error {
-	// check delay period has passed
-	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
-		return err
-	}
+// TODO: this was also moved to the connection keeper
+// func (cs ClientState) VerifyPacketAcknowledgement(
+// 	ctx sdk.Context,
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	delayTimePeriod uint64,
+// 	delayBlockPeriod uint64,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	portID,
+// 	channelID string,
+// 	sequence uint64,
+// 	acknowledgement []byte,
+// ) error {
+// 	// check delay period has passed
+// 	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+// 		return err
+// 	}
 
-	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	path, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
-	if err != nil {
-		return err
-	}
+// 	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, channeltypes.CommitAcknowledgement(acknowledgement))
-}
+// 	return cs.VerifyMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, channeltypes.CommitAcknowledgement(acknowledgement))
+// }
 
 // VerifyPacketReceiptAbsence verifies a proof of the absence of an
 // incoming packet receipt at the specified port, specified channel, and
 // specified sequence.
-func (cs ClientState) VerifyPacketReceiptAbsence(
-	ctx sdk.Context,
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	sequence uint64,
-) error {
-	// check delay period has passed
-	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
-		return err
-	}
+// func (cs ClientState) VerifyPacketReceiptAbsence(
+// 	ctx sdk.Context,
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	delayTimePeriod uint64,
+// 	delayBlockPeriod uint64,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	portID,
+// 	channelID string,
+// 	sequence uint64,
+// ) error {
+// 	// check delay period has passed
+// 	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+// 		return err
+// 	}
 
-	receiptPath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	path, err := commitmenttypes.ApplyPrefix(prefix, receiptPath)
-	if err != nil {
-		return err
-	}
+// 	receiptPath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, receiptPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return cs.VerifyNonMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
-}
+// 	return cs.VerifyNonMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
+// }
 
 // VerifyNextSequenceRecv verifies a proof of the next sequence number to be
 // received of the specified channel at the specified port.
-func (cs ClientState) VerifyNextSequenceRecv(
-	ctx sdk.Context,
-	store sdk.KVStore,
-	cdc codec.BinaryCodec,
-	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	nextSequenceRecv uint64,
-) error {
-	// check delay period has passed
-	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
-		return err
-	}
+// func (cs ClientState) VerifyNextSequenceRecv(
+// 	ctx sdk.Context,
+// 	store storetypes.KVStore,
+// 	cdc codec.BinaryCodec,
+// 	height exported.Height,
+// 	delayTimePeriod uint64,
+// 	delayBlockPeriod uint64,
+// 	prefix exported.Prefix,
+// 	proof []byte,
+// 	portID,
+// 	channelID string,
+// 	nextSequenceRecv uint64,
+// ) error {
+// 	// check delay period has passed
+// 	if err := verifyDelayPeriodPassed(ctx, store, height, delayTimePeriod, delayBlockPeriod); err != nil {
+// 		return err
+// 	}
 
-	nextSequenceRecvPath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	path, err := commitmenttypes.ApplyPrefix(prefix, nextSequenceRecvPath)
-	if err != nil {
-		return err
-	}
+// 	nextSequenceRecvPath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
+// 	path, err := commitmenttypes.ApplyPrefix(prefix, nextSequenceRecvPath)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	bz := sdk.Uint64ToBigEndian(nextSequenceRecv)
-	return cs.VerifyMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, bz)
-}
+// 	bz := sdk.Uint64ToBigEndian(nextSequenceRecv)
+// 	return cs.VerifyMembership(store, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, bz)
+// }
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
 // since consensus state was submitted before allowing verification to continue.
-func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
+func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
 	// check that executing chain's timestamp has passed consensusState's processed time + delay time period
 	processedTime, ok := GetProcessedTime(store, proofHeight)
 	if !ok {
@@ -374,8 +409,9 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exp
 
 // The following are modified methods from the v9 IBC Client interface. The idea is to make
 // it easy to update this client once Celestia moves to v9 of IBC
-func (cs ClientState) VerifyMembership(
-	clientStore sdk.KVStore,
+func (cs ClientState) verifyMembership(
+	ctx context.Context,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -385,9 +421,9 @@ func (cs ClientState) VerifyMembership(
 	value []byte,
 ) error {
 	// Path validation
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, err := GetConsensusState(clientStore, cdc, height)
@@ -412,8 +448,9 @@ func (cs ClientState) VerifyMembership(
 
 // VerifyNonMembership verifies a proof of the absence of a key in the Merkle tree.
 // It's the same as VerifyMembership, but the value is nil
-func (cs ClientState) VerifyNonMembership(
-	clientStore sdk.KVStore,
+func (cs ClientState) verifyNonMembership(
+	ctx context.Context,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -426,9 +463,9 @@ func (cs ClientState) VerifyNonMembership(
 		return fmt.Errorf("failed to get consensus state: %w", err)
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	// Inclusion verification only supports MPT tries currently
@@ -450,18 +487,22 @@ func (cs ClientState) VerifyNonMembership(
 //------------------------------------
 
 // Checking for misbehaviour is a noop for groth16
-func (cs ClientState) CheckMisbehaviourAndUpdateState(
-	ctx sdk.Context,
-	cdc codec.BinaryCodec,
-	clientStore sdk.KVStore,
-	misbehaviour exported.Misbehaviour,
-) (exported.ClientState, error) {
-	return &cs, nil
-}
+// TODO: removed in favor of
+// The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface.
+// This functionality is now encapsulated by the usage of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour`.
+
+// func (cs ClientState) CheckMisbehaviourAndUpdateState(
+// 	ctx sdk.Context,
+// 	cdc codec.BinaryCodec,
+// 	clientStore storetypes.KVStore,
+// 	misbehaviour exported.Misbehaviour,
+// ) (exported.ClientState, error) {
+// 	return &cs, nil
+// }
 
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
-	substituteClientStore sdk.KVStore, substituteClient exported.ClientState,
+	substituteClientStore storetypes.KVStore, substituteClient exported.ClientState,
 ) (exported.ClientState, error) {
 	return nil, sdkerrors.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update groth16 client with a proposal")
 }

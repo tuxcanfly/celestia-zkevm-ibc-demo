@@ -7,10 +7,16 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	storetypes "cosmossdk.io/store/types"
 )
+
+// TODO: look into refactoring this 
+// * (modules/core/02-client) [\#1210](https://github.com/cosmos/ibc-go/pull/1210)
+// Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations.
+
 
 // CheckHeaderAndUpdateState checks if the provided header is valid, and if valid it will:
 // create the consensus state for the header.Height
@@ -46,7 +52,7 @@ import (
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
 func (cs ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	header exported.Header,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	h, ok := header.(*Header)
@@ -129,7 +135,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 }
 
 // update the consensus state from a new header and set processed time metadata
-func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
+func update(ctx sdk.Context, clientStore storetypes.KVStore, clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
 	consensusState := &ConsensusState{
 		Timestamp: ctx.BlockTime(), // this should really be the Celestia block time at the newHeight
 		StateRoot: header.NewStateRoot,

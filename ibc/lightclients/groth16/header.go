@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
-var _ exported.Header = &Header{}
+var _ exported.ClientMessage = (*Header)(nil)
 
 // ClientType defines that the Header is a Tendermint consensus algorithm
 func (h Header) ClientType() string {

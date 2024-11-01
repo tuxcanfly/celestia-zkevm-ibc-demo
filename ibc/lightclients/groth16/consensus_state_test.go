@@ -5,18 +5,18 @@ import (
 
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint/types"
+	"github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		msg            string
-		consensusState *types.ConsensusState
+		consensusState *tendermint.ConsensusState
 		expectPass     bool
 	}{
 		{
 			"success",
-			&types.ConsensusState{
+			&tendermint.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,
@@ -25,16 +25,16 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"success with sentinel",
-			&types.ConsensusState{
+			&tendermint.ConsensusState{
 				Timestamp:          suite.now,
-				Root:               commitmenttypes.NewMerkleRoot([]byte(types.SentinelRoot)),
+				Root:               commitmenttypes.NewMerkleRoot([]byte(tendermint.SentinelRoot)),
 				NextValidatorsHash: suite.valsHash,
 			},
 			true,
 		},
 		{
 			"root is nil",
-			&types.ConsensusState{
+			&tendermint.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
@@ -43,7 +43,7 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"root is empty",
-			&types.ConsensusState{
+			&tendermint.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.MerkleRoot{},
 				NextValidatorsHash: suite.valsHash,
@@ -52,7 +52,7 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 		},
 		{
 			"nextvalshash is invalid",
-			&types.ConsensusState{
+			&tendermint.ConsensusState{
 				Timestamp:          suite.now,
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: []byte("hi"),
@@ -62,7 +62,7 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 
 		{
 			"timestamp is zero",
-			&types.ConsensusState{
+			&tendermint.ConsensusState{
 				Timestamp:          time.Time{},
 				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
 				NextValidatorsHash: suite.valsHash,

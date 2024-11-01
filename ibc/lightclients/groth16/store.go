@@ -2,14 +2,16 @@ package groth16
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"strings"
 
+	sdkerrors "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	storetypes "cosmossdk.io/store/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -44,7 +46,7 @@ var (
 )
 
 // SetConsensusState stores the consensus state at the given height.
-func SetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
+func SetConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
 	key := host.ConsensusStateKey(height)
 	val := clienttypes.MustMarshalConsensusState(cdc, consensusState)
 	clientStore.Set(key, val)
@@ -52,7 +54,7 @@ func SetConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, consensus
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
+func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if len(bz) == 0 {
 		return nil, sdkerrors.Wrapf(
@@ -78,15 +80,15 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 }
 
 // deleteConsensusState deletes the consensus state at the given height
-func deleteConsensusState(clientStore sdk.KVStore, height exported.Height) {
+func deleteConsensusState(clientStore storetypes.KVStore, height exported.Height) {
 	key := host.ConsensusStateKey(height)
 	clientStore.Delete(key)
 }
 
 // IterateConsensusMetadata iterates through the prefix store and applies the callback.
 // If the cb returns true, then iterator will close and stop.
-func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) {
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyConsensusStatePrefix))
+func IterateConsensusMetadata(store storetypes.KVStore, cb func(key, val []byte) bool) {
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConsensusStatePrefix))
 
 	// iterate over processed time and processed height
 	defer iterator.Close()
@@ -109,7 +111,7 @@ func IterateConsensusMetadata(store sdk.KVStore, cb func(key, val []byte) bool) 
 	}
 
 	// iterate over iteration keys
-	iterator = sdk.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
+	iterator = storetypes.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -127,7 +129,7 @@ func ProcessedTimeKey(height exported.Height) []byte {
 // SetProcessedTime stores the time at which a header was processed and the corresponding consensus state was created.
 // This is useful when validating whether a packet has reached the time specified delay period in the tendermint client's
 // verification functions
-func SetProcessedTime(clientStore sdk.KVStore, height exported.Height, timeNs uint64) {
+func SetProcessedTime(clientStore storetypes.KVStore, height exported.Height, timeNs uint64) {
 	key := ProcessedTimeKey(height)
 	val := sdk.Uint64ToBigEndian(timeNs)
 	clientStore.Set(key, val)
@@ -135,7 +137,7 @@ func SetProcessedTime(clientStore sdk.KVStore, height exported.Height, timeNs ui
 
 // GetProcessedTime gets the time (in nanoseconds) at which this chain received and processed a tendermint header.
 // This is used to validate that a received packet has passed the time delay period.
-func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
+func GetProcessedTime(clientStore storetypes.KVStore, height exported.Height) (uint64, bool) {
 	key := ProcessedTimeKey(height)
 	bz := clientStore.Get(key)
 	if len(bz) == 0 {
@@ -145,7 +147,7 @@ func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, 
 }
 
 // deleteProcessedTime deletes the processedTime for a given height
-func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
+func deleteProcessedTime(clientStore storetypes.KVStore, height exported.Height) {
 	key := ProcessedTimeKey(height)
 	clientStore.Delete(key)
 }
@@ -158,7 +160,7 @@ func ProcessedHeightKey(height exported.Height) []byte {
 // SetProcessedHeight stores the height at which a header was processed and the corresponding consensus state was created.
 // This is useful when validating whether a packet has reached the specified block delay period in the tendermint client's
 // verification functions
-func SetProcessedHeight(clientStore sdk.KVStore, consHeight, processedHeight exported.Height) {
+func SetProcessedHeight(clientStore storetypes.KVStore, consHeight, processedHeight exported.Height) {
 	key := ProcessedHeightKey(consHeight)
 	val := []byte(processedHeight.String())
 	clientStore.Set(key, val)
@@ -166,7 +168,7 @@ func SetProcessedHeight(clientStore sdk.KVStore, consHeight, processedHeight exp
 
 // GetProcessedHeight gets the height at which this chain received and processed a tendermint header.
 // This is used to validate that a received packet has passed the block delay period.
-func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (exported.Height, bool) {
+func GetProcessedHeight(clientStore storetypes.KVStore, height exported.Height) (exported.Height, bool) {
 	key := ProcessedHeightKey(height)
 	bz := clientStore.Get(key)
 	if len(bz) == 0 {
@@ -180,7 +182,7 @@ func GetProcessedHeight(clientStore sdk.KVStore, height exported.Height) (export
 }
 
 // deleteProcessedHeight deletes the processedHeight for a given height
-func deleteProcessedHeight(clientStore sdk.KVStore, height exported.Height) {
+func deleteProcessedHeight(clientStore storetypes.KVStore, height exported.Height) {
 	key := ProcessedHeightKey(height)
 	clientStore.Delete(key)
 }
@@ -193,7 +195,7 @@ func IterationKey(height exported.Height) []byte {
 }
 
 // SetIterationKey stores the consensus state key under a key that is more efficient for ordered iteration
-func SetIterationKey(clientStore sdk.KVStore, height exported.Height) {
+func SetIterationKey(clientStore storetypes.KVStore, height exported.Height) {
 	key := IterationKey(height)
 	val := host.ConsensusStateKey(height)
 	clientStore.Set(key, val)
@@ -201,13 +203,13 @@ func SetIterationKey(clientStore sdk.KVStore, height exported.Height) {
 
 // GetIterationKey returns the consensus state key stored under the efficient iteration key.
 // NOTE: This function is currently only used for testing purposes
-func GetIterationKey(clientStore sdk.KVStore, height exported.Height) []byte {
+func GetIterationKey(clientStore storetypes.KVStore, height exported.Height) []byte {
 	key := IterationKey(height)
 	return clientStore.Get(key)
 }
 
 // deleteIterationKey deletes the iteration key for a given height
-func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
+func deleteIterationKey(clientStore storetypes.KVStore, height exported.Height) {
 	key := IterationKey(height)
 	clientStore.Delete(key)
 }
@@ -224,8 +226,8 @@ func GetHeightFromIterationKey(iterKey []byte) exported.Height {
 
 // IterateConsensusStateAscending iterates through the consensus states in ascending order. It calls the provided
 // callback on each height, until stop=true is returned.
-func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) error {
-	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
+func IterateConsensusStateAscending(clientStore storetypes.KVStore, cb func(height exported.Height) (stop bool)) error {
+	iterator := storetypes.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -242,7 +244,7 @@ func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height expo
 // The Iterator returns a storetypes.Iterator which iterates from start (inclusive) to end (exclusive).
 // If the starting height exists in store, we need to call iterator.Next() to get the next consenus state.
 // Otherwise, the iterator is already at the next consensus state so we can call iterator.Value() immediately.
-func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
+func GetNextConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	iterateStore := prefix.NewStore(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	iterator := iterateStore.Iterator(bigEndianHeightBytes(height), nil)
 	defer iterator.Close()
@@ -267,7 +269,7 @@ func GetNextConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, heigh
 // GetPreviousConsensusState returns the highest consensus state that is lower than the given height.
 // The Iterator returns a storetypes.Iterator which iterates from the end (exclusive) to start (inclusive).
 // Thus to get previous consensus state we call iterator.Value() immediately.
-func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
+func GetPreviousConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	iterateStore := prefix.NewStore(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	iterator := iterateStore.ReverseIterator(nil, bigEndianHeightBytes(height))
 	defer iterator.Close()
@@ -285,7 +287,7 @@ func GetPreviousConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, h
 // client store. If a consensus state is expired, it is deleted and its metadata
 // is deleted.
 func PruneAllExpiredConsensusStates(
-	ctx sdk.Context, clientStore sdk.KVStore,
+	ctx sdk.Context, clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
 ) (err error) {
 	var heights []exported.Height
@@ -318,7 +320,7 @@ func PruneAllExpiredConsensusStates(
 }
 
 // Helper function for GetNextConsensusState and GetPreviousConsensusState
-func getTmConsensusState(clientStore sdk.KVStore, cdc codec.BinaryCodec, key []byte) (*ConsensusState, bool) {
+func getTmConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, key []byte) (*ConsensusState, bool) {
 	bz := clientStore.Get(key)
 	if len(bz) == 0 {
 		return nil, false
@@ -347,13 +349,14 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 // as this is internal tendermint light client logic.
 // client state and consensus state will be set by client keeper
 // set iteration key to provide ability for efficient ordered iteration of consensus states.
-func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
-	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
+func setConsensusMetadata(ctx context.Context, clientStore storetypes.KVStore, height exported.Height) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano()))
 }
 
 // setConsensusMetadataWithValues sets the consensus metadata with the provided values
 func setConsensusMetadataWithValues(
-	clientStore sdk.KVStore, height,
+	clientStore storetypes.KVStore, height,
 	processedHeight exported.Height,
 	processedTime uint64,
 ) {
@@ -363,7 +366,7 @@ func setConsensusMetadataWithValues(
 }
 
 // deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
-func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
+func deleteConsensusMetadata(clientStore storetypes.KVStore, height exported.Height) {
 	deleteProcessedTime(clientStore, height)
 	deleteProcessedHeight(clientStore, height)
 	deleteIterationKey(clientStore, height)

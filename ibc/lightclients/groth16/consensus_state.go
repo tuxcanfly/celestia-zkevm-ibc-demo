@@ -3,7 +3,6 @@ package groth16
 import (
 	"time"
 
-	"github.com/celestiaorg/celestia-app/v3/pkg/appconsts"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -40,5 +39,5 @@ func (cs ConsensusState) ValidateBasic() error {
 }
 
 func (cs ConsensusState) IsExpired(blockTime time.Time) bool {
-	return cs.Timestamp.Add(appconsts.DefaultUnbondingTime).After(blockTime)
+	return cs.Timestamp.Add(DefaultUnbondingTime).After(blockTime)
 }

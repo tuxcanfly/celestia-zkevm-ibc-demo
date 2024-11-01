@@ -18,7 +18,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&ConsensusState{},
 	)
 	registry.RegisterImplementations(
-		(*exported.Header)(nil),
+		(*exported.ClientMessage)(nil),
 		&Header{},
+	)
+	registry.RegisterImplementations(
+		(*exported.ClientMessage)(nil),
+		// TODO: add the type for Misbehaviour
+		&Misbehaviour{},
 	)
 }

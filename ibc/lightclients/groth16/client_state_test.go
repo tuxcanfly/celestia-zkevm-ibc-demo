@@ -356,7 +356,6 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 		clientState *types.ClientState
 		proof       []byte
 		proofHeight exported.Height
-		prefix      commitmenttypes.MerklePrefix
 	)
 
 	testCases := []struct {
@@ -366,11 +365,6 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 	}{
 		{
 			"successful verification", func() {}, true,
-		},
-		{
-			"ApplyPrefix failed", func() {
-				prefix = commitmenttypes.MerklePrefix{}
-			}, false,
 		},
 		{
 			"latest client height < height", func() {
@@ -399,8 +393,6 @@ func (suite *TendermintTestSuite) TestVerifyChannelState() {
 			clientStateI := suite.chainA.GetClientState(path.EndpointA.ClientID)
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
-
-			prefix = suite.chainB.GetPrefix()
 
 			// make channel proof
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
