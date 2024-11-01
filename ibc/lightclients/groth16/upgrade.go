@@ -1,11 +1,11 @@
 package groth16
 
 import (
+	"context"
 	"errors"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -23,9 +23,9 @@ import (
 //     and ProofSpecs do not match parameters set by committed client
 func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// QUESTION: should we change this to context.Context?
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
 	proofUpgradeClient, proofUpgradeConsState []byte,
-) (exported.ClientState, exported.ConsensusState, error) {
-	return nil, nil, errors.New("not implemented")
+) error {
+	return errors.New("not implemented")
 }

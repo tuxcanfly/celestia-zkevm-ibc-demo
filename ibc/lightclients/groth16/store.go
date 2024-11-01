@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	fmt "fmt"
 	"strings"
 
 	sdkerrors "cosmossdk.io/errors"
@@ -77,6 +78,23 @@ func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height e
 	}
 
 	return consensusState, nil
+}
+
+// getClientState retrieves the client state from the store using the provided KVStore and codec.
+// It returns the unmarshaled ClientState and a boolean indicating if the state was found.
+func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, bool) {
+	bz := store.Get(host.ClientStateKey())
+	if len(bz) == 0 {
+		return nil, false
+	}
+
+	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
+	var clientState *ClientState
+	clientState, ok := clientStateI.(*ClientState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", clientStateI, clientState))
+	}
+	return clientState, true
 }
 
 // deleteConsensusState deletes the consensus state at the given height

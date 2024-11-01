@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	cmttypes "github.com/cometbft/cometbft/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -11,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	types "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
@@ -26,7 +26,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 	)
 
 	// Setup different validators and signers for testing different types of updates
-	altPrivVal := ibctestingmock.NewPV()
+	altPrivVal := cmttypes.NewMockPV()
 	altPubKey, err := altPrivVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -38,9 +38,9 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 	heightMinus3 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight-3)
 	heightPlus5 := clienttypes.NewHeight(height.RevisionNumber, height.RevisionHeight+5)
 
-	altVal := tmtypes.NewValidator(altPubKey, revisionHeight)
+	altVal := cmttypes.NewValidator(altPubKey, 100)
 	// Create alternative validator set with only altVal, invalid update (too much change in valSet)
-	altValSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{altVal})
+	altValSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{altVal})
 	altSigners := getAltSigners(altVal, altPrivVal)
 
 	testCases := []struct {
@@ -65,7 +65,7 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 			setup: func(suite *TendermintTestSuite) {
 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
-				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, suite.valSet, bothSigners)
+				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
 				currentTime = suite.now
 			},
 			expFrozen: false,

@@ -2,21 +2,21 @@ package groth16
 
 import (
 	"bytes"
+	"context"
 
+	sdkerrors "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "cosmossdk.io/errors"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	storetypes "cosmossdk.io/store/types"
 )
 
-// TODO: look into refactoring this 
+// TODO: look into refactoring this
 // * (modules/core/02-client) [\#1210](https://github.com/cosmos/ibc-go/pull/1210)
 // Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations.
-
 
 // CheckHeaderAndUpdateState checks if the provided header is valid, and if valid it will:
 // create the consensus state for the header.Height
@@ -51,16 +51,20 @@ import (
 // UpdateClient will additionally retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
-func (cs ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
-	header exported.Header,
+func (cs ClientState) UpdateState(
+	ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	clientMsg exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
-	h, ok := header.(*Header)
+	header, ok := clientMsg.(*Header)
 	if !ok {
 		return nil, nil, sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
 		)
 	}
+
+	// performance: do not prune in checkTx
+	// simulation must prune for accurate gas estimation
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 
 	// Check if the Client store already has a consensus state for the header's height
 	// If the consensus state exists, and it matches the header then we return early
@@ -71,10 +75,10 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	}
 
 	// get consensus state from clientStore
-	trustedConsState, err := GetConsensusState(clientStore, cdc, h.GetTrustedHeight())
+	trustedConsState, err := GetConsensusState(clientStore, cdc, header.GetTrustedHeight())
 	if err != nil {
 		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", h.TrustedHeight,
+			err, "could not get consensus state from clientstore at TrustedHeight: %s", header.TrustedHeight,
 		)
 	}
 
@@ -83,13 +87,13 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
-	witness, err := h.GenerateStateTransitionPublicWitness(trustedConsState.StateRoot)
+	witness, err := header.GenerateStateTransitionPublicWitness(trustedConsState.StateRoot)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	proof := groth16.NewProof(ecc.BN254)
-	_, err = proof.ReadFrom(bytes.NewReader(h.StateTransitionProof))
+	_, err = proof.ReadFrom(bytes.NewReader(header.StateTransitionProof))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -112,7 +116,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 			pruneError = err
 			return true
 		}
-		if consState.IsExpired(ctx.BlockTime()) {
+		if consState.IsExpired(sdkCtx.BlockTime()) {
 			pruneHeight = height
 		}
 		return true
@@ -130,7 +134,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		deleteConsensusMetadata(clientStore, pruneHeight)
 	}
 
-	newClientState, consensusState := update(ctx, clientStore, &cs, h)
+	newClientState, consensusState := update(sdkCtx, clientStore, &cs, header)
 	return newClientState, consensusState, nil
 }
 

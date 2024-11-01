@@ -3,11 +3,11 @@ package groth16_test
 import (
 	"time"
 
-	tmprotocrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint/types"
+	types "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 func (suite *TendermintTestSuite) TestGetHeight() {
@@ -48,7 +48,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.ValidatorSet = nil
 		}, false},
 		{"ValidatorSetFromProto failed", func() {
-			header.ValidatorSet.Validators[0].PubKey = tmprotocrypto.PublicKey{}
+			header.ValidatorSet.Validators[0].PubKey = cmtprotocrypto.PublicKey{}
 		}, false},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
