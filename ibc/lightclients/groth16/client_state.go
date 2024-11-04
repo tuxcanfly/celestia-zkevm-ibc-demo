@@ -14,7 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 
 	// connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection"
-
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -137,7 +137,7 @@ func (cs ClientState) verifyMembership(
 	// Path validation
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
+		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, err := GetConsensusState(clientStore, cdc, height)
@@ -179,7 +179,7 @@ func (cs ClientState) verifyNonMembership(
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
+		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	// Inclusion verification only supports MPT tries currently
@@ -198,6 +198,19 @@ func (cs ClientState) verifyNonMembership(
 	return nil
 }
 
+func (cs ClientState) getTimestampAtHeight(
+	clientStore storetypes.KVStore,
+	cdc codec.BinaryCodec,
+	height exported.Height,
+) (uint64, error) {
+	consensusState, err := GetConsensusState(clientStore, cdc, height)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get consensus state: %w", err)
+	}
+
+	return consensusState.GetTimestamp(), nil
+}
+
 //------------------------------------
 
 // Checking for misbehaviour is a noop for groth16
@@ -213,6 +226,11 @@ func (cs ClientState) verifyNonMembership(
 // ) (exported.ClientState, error) {
 // 	return &cs, nil
 // }
+
+// CheckForMisbehaviour is a noop for groth16
+func (ClientState) CheckForMisbehaviour(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, msg exported.ClientMessage) bool {
+	return false
+}
 
 func (cs ClientState) CheckSubstituteAndUpdateState(
 	ctx context.Context, cdc codec.BinaryCodec, subjectClientStore,

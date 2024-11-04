@@ -21,9 +21,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*exported.ClientMessage)(nil),
 		&Header{},
 	)
-	registry.RegisterImplementations(
-		(*exported.ClientMessage)(nil),
-		// TODO: add the type for Misbehaviour
-		&Misbehaviour{},
-	)
+	// registry.RegisterImplementations(
+	// 	(*exported.ClientMessage)(nil),
+	// 	// TODO: add the type for Misbehaviour
+	// 	&Misbehaviour{},
+	// )
 }

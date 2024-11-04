@@ -14,14 +14,14 @@ import (
 )
 
 // VerifyMerklePatriciaTrieProof verifies MPT proofs with IBC public inputs
-func VerifyMerklePatriciaTrieProof(stateRoot []byte, key string, proof []byte) (value []byte, err error) {
+func VerifyMerklePatriciaTrieProof(stateRoot []byte, key []byte, proof []byte) (value []byte, err error) {
 	rootHash := common.BytesToHash(stateRoot)
 	bytesToProofList, err := bytesToProofList(proof)
 	proofDB, err := ReconstructProofDB(bytesToProofList)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode proof: %w", err)
 	}
-	return trie.VerifyProof(rootHash, []byte(key), proofDB)
+	return trie.VerifyProof(rootHash, key, proofDB)
 }
 
 // bytesToProofList converts []byte back to proofList by decoding with gob

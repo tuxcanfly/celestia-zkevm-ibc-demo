@@ -39,7 +39,7 @@ func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
 				t.Fatalf("prover %d: missing key %x while constructing proof", i, kv.k)
 			}
 
-			val, err := mpt.VerifyMerklePatriciaTrieProof(root.Bytes(), string(kv.k), proofBytes)
+			val, err := mpt.VerifyMerklePatriciaTrieProof(root.Bytes(), kv.k, proofBytes)
 			if err != nil {
 				t.Fatalf("prover %d: failed to verify proof for key %x: %v\nraw proof: %x", i, kv.k, err, proof)
 			}

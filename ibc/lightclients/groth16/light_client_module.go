@@ -66,26 +66,14 @@ func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID str
 	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.
+// CheckForMisbehaviour is a no-op in groth16 client.
 func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	clientState, found := getClientState(clientStore, l.cdc)
-	if !found {
-		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
-	}
-
-	return clientState.CheckForMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
+	return false
 }
 
-// UpdateStateOnMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.UpdateStateOnMisbehaviour method.
+// UpdateStateOnMisbehaviour is a no-op in groth16 light client.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	clientState, found := getClientState(clientStore, l.cdc)
-	if !found {
-		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
-	}
-
-	clientState.UpdateStateOnMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
+	return
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
@@ -163,19 +151,19 @@ func (l LightClientModule) LatestHeight(ctx context.Context, clientID string) ex
 
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.getTimestampAtHeight method.
 // TODO: understand the purpose and if we need this method
-// func (l LightClientModule) TimestampAtHeight(
-// 	ctx context.Context,
-// 	clientID string,
-// 	height exported.Height,
-// ) (uint64, error) {
-// 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-// 	clientState, found := getClientState(clientStore, l.cdc)
-// 	if !found {
-// 		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
-// 	}
+func (l LightClientModule) TimestampAtHeight(
+	ctx context.Context,
+	clientID string,
+	height exported.Height,
+) (uint64, error) {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	clientState, found := getClientState(clientStore, l.cdc)
+	if !found {
+		return 0, errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
 
-// 	return clientState.getTimestampAtHeight(clientStore, l.cdc, height)
-// }
+	return clientState.getTimestampAtHeight(clientStore, l.cdc, height)
+}
 
 // RecoverClient asserts that the substitute client is a tendermint client. It obtains the client state associated with the
 // subject client and calls into the subjectClientState.CheckSubstituteAndUpdateState method.
