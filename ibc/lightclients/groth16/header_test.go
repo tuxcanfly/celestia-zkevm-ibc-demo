@@ -10,17 +10,17 @@ import (
 	types "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
-func (suite *TendermintTestSuite) TestGetHeight() {
+func (suite *Groth16TestSuite) TestGetHeight() {
 	header := suite.chainA.LatestCommittedHeader
 	suite.Require().NotEqual(uint64(0), header.GetHeight())
 }
 
-func (suite *TendermintTestSuite) TestGetTime() {
+func (suite *Groth16TestSuite) TestGetTime() {
 	header := suite.chainA.LatestCommittedHeader
 	suite.Require().NotEqual(time.Time{}, header.GetTime())
 }
 
-func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
+func (suite *Groth16TestSuite) TestHeaderValidateBasic() {
 	var header *types.Header
 	testCases := []struct {
 		name     string

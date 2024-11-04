@@ -36,7 +36,7 @@ func (cs ClientState) verifyHeader(ctx context.Context, clientStore storetypes.K
 	_, err := GetConsensusState(clientStore, cdc, header.GetTrustedHeight())
 	if err != nil {
 		return sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", header.TrustedHeight,
+			err, "could not get consensus state from clientstore at TrustedHeight: %d", header.TrustedHeight,
 		)
 	}
 
@@ -44,7 +44,7 @@ func (cs ClientState) verifyHeader(ctx context.Context, clientStore storetypes.K
 	if header.GetHeight().LTE(header.GetTrustedHeight()) {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader,
-			"header height ≤ consensus state height (%s ≤ %s)", header.GetHeight(), header.TrustedHeight,
+			"header height ≤ consensus state height (%d ≤ %d)", header.GetHeight(), header.TrustedHeight,
 		)
 	}
 

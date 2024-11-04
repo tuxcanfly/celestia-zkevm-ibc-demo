@@ -14,7 +14,7 @@ package groth16_test
 // 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 // )
 
-// func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
+// func (suite *Groth16TestSuite) TestCheckHeaderAndUpdateState() {
 // 	var (
 // 		clientState     *types.ClientState
 // 		consensusState  *types.ConsensusState
@@ -45,13 +45,13 @@ package groth16_test
 
 // 	testCases := []struct {
 // 		name      string
-// 		setup     func(*TendermintTestSuite)
+// 		setup     func(*Groth16TestSuite)
 // 		expFrozen bool
 // 		expPass   bool
 // 	}{
 // 		{
 // 			name: "successful update with next height and same validator set",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.chainB.Vals, suite.valSet, suite.valSet, suite.signers)
@@ -62,7 +62,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "successful update with future height and different validator set",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -73,7 +73,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "successful update with next height and different validator set",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), bothValSet.Hash())
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, bothValSet, bothSigners)
@@ -84,7 +84,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "successful update for a previous height",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				consStateHeight = heightMinus3
@@ -96,7 +96,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "successful update for a previous revision",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				consStateHeight = heightMinus3
@@ -107,7 +107,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "successful update with identical header to a previous update",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -121,7 +121,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "misbehaviour detection: header conflicts with existing consensus state",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, heightPlus1, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -137,7 +137,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "misbehaviour detection: previous consensus state time is not before header time. time monotonicity violation",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				// create an intermediate consensus state with the same time as the newHeader to create a time violation.
 // 				// header time is after client time
@@ -155,7 +155,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "misbehaviour detection: next consensus state time is not after header time. time monotonicity violation",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				// create the next consensus state with the same time as the intermediate newHeader to create a time violation.
 // 				// header time is after clientTime
@@ -173,7 +173,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update with incorrect header chain-id",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader("ethermint", int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -184,7 +184,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update to a future revision",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainIDRevision0, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 1, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -194,7 +194,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update: header height revision and trusted height revision mismatch",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainIDRevision1, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(1, 1), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainIDRevision1, 3, height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -205,7 +205,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update with next height: update header mismatches nextValSetHash",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, suite.valSet, bothSigners)
@@ -216,7 +216,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update with next height: update header mismatches different nextValSetHash",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), bothValSet.Hash())
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, bothValSet, suite.signers)
@@ -227,7 +227,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update with future height: too much change in validator set",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, altValSet, altValSet, suite.valSet, altSigners)
@@ -238,7 +238,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful updates, passed in incorrect trusted validators for given consensus state",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus5.RevisionHeight), height, suite.headerTime, bothValSet, bothValSet, bothValSet, bothSigners)
@@ -249,7 +249,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update: trusting period has passed since last client timestamp",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -261,7 +261,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update: header timestamp is past current timestamp",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.now.Add(time.Minute), suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -272,7 +272,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "unsuccessful update: header timestamp is not past last client timestamp",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.clientTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -283,7 +283,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "header basic validation failed",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				newHeader = suite.chainA.CreateTMClientHeader(chainID, int64(heightPlus1.RevisionHeight), height, suite.headerTime, suite.valSet, suite.valSet, suite.valSet, suite.signers)
@@ -296,7 +296,7 @@ package groth16_test
 // 		},
 // 		{
 // 			name: "header height < consensus height",
-// 			setup: func(suite *TendermintTestSuite) {
+// 			setup: func(suite *Groth16TestSuite) {
 // 				clientState = types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.NewHeight(height.RevisionNumber, heightPlus5.RevisionHeight), commitmenttypes.GetSDKSpecs(), upgradePath, false, false)
 // 				consensusState = types.NewConsensusState(suite.clientTime, commitmenttypes.NewMerkleRoot(suite.header.Header.GetAppHash()), suite.valsHash)
 // 				// Make new header at height less than latest client state
@@ -367,7 +367,7 @@ package groth16_test
 // 	}
 // }
 
-// func (suite *TendermintTestSuite) TestPruneConsensusState() {
+// func (suite *Groth16TestSuite) TestPruneConsensusState() {
 // 	// create path and setup clients
 // 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 // 	suite.coordinator.SetupClients(path)

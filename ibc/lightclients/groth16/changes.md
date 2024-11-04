@@ -7,4 +7,4 @@ some of the work i did in order to reflect recent changes in the ibc:
 - VerifyClientState and VerifyClientConsensusState were removed.
 // https://github.com/cosmos/ibc/issues/1121
 
-- Have to add module.go in order to initialize the client in the cosmos-sdk app
+- Have to add module.go in order to initialize the client in the cosmos-sdk app.

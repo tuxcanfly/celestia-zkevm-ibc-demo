@@ -14,7 +14,7 @@ import (
 
 var newChainId = "newChainId-1"
 
-func (suite *TendermintTestSuite) TestVerifyUpgrade() {
+func (suite *Groth16TestSuite) TestVerifyUpgrade() {
 	var (
 		upgradedClient                              exported.ClientState
 		upgradedConsState                           exported.ConsensusState

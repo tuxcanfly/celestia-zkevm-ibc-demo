@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
-func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
+func (suite *Groth16TestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		msg            string
 		consensusState *tendermint.ConsensusState

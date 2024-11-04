@@ -77,7 +77,7 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	}
 }
 
-// initialize will check that initial consensus state is a Tendermint consensus state
+// initialize will check that initial consensus state is a groth16 consensus state
 // and will store ProcessedTime for initial consensus state as ctx.BlockTime()
 func (cs ClientState) initialize(ctx context.Context, _ codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	if _, ok := consState.(*ConsensusState); !ok {
@@ -187,12 +187,12 @@ func (cs ClientState) verifyNonMembership(
 	// or we could add a new type that's more compatible with ethereum
 	verifiedValue, err := mpt.VerifyMerklePatriciaTrieProof(consensusState.StateRoot, merklePath.KeyPath[0], proof)
 	if err != nil {
-		fmt.Errorf("inclusion verification failed", err)
+		return fmt.Errorf("inclusion verification failed: %w", err)
 	}
 
 	// if verifiedValue is not nil error
 	if verifiedValue != nil {
-		fmt.Errorf("the value for the specified key exists", err)
+		return fmt.Errorf("the value for the specified key exists: %w", err)
 	}
 
 	return nil

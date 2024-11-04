@@ -73,7 +73,6 @@ func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID st
 
 // UpdateStateOnMisbehaviour is a no-op in groth16 light client.
 func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) {
-	return
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
@@ -222,7 +221,7 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	// last height of current counterparty chain must be client's latest height
 	lastHeight := clientState.GetLatestHeight()
 	if !newClientState.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s", newClientState.LatestHeight, lastHeight)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %d must be at greater than current client height %d", newClientState.LatestHeight, lastHeight)
 	}
 
 	return clientState.VerifyUpgradeAndUpdateState(ctx, l.cdc, clientStore, &newClientState, &newConsensusState, upgradeClientProof, upgradeConsensusStateProof)

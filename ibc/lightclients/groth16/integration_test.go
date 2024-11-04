@@ -35,7 +35,7 @@ var (
 	invalidUpgradePath = []string{"upgrade", ""}
 )
 
-type TendermintTestSuite struct {
+type Groth16TestSuite struct {
 	testifysuite.Suite
 
 	coordinator *ibctesting.Coordinator
@@ -57,7 +57,7 @@ type TendermintTestSuite struct {
 	clientTime time.Time
 }
 
-func (suite *TendermintTestSuite) SetupTest() {
+func (suite *Groth16TestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
@@ -98,7 +98,7 @@ func getAltSigners(altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator
 	return map[string]cmttypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
 
-func getBothSigners(suite *TendermintTestSuite, altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator) (*cmttypes.ValidatorSet, map[string]cmttypes.PrivValidator) {
+func getBothSigners(suite *Groth16TestSuite, altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator) (*cmttypes.ValidatorSet, map[string]cmttypes.PrivValidator) {
 	// Create bothValSet with both suite validator and altVal. Would be valid update
 	bothValSet := cmttypes.NewValidatorSet(append(suite.valSet.Validators, altVal))
 	// Create signer array and ensure it is in same order as bothValSet
@@ -110,6 +110,6 @@ func getBothSigners(suite *TendermintTestSuite, altVal *cmttypes.Validator, altP
 	return bothValSet, bothSigners
 }
 
-func TestTendermintTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(TendermintTestSuite))
+func TestGroth16TestSuite(t *testing.T) {
+	testifysuite.Run(t, new(Groth16TestSuite))
 }
