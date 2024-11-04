@@ -145,10 +145,11 @@ func (cs ClientState) verifyMembership(
 		return fmt.Errorf("failed to get consensus state: %w", err)
 	}
 
+	// MPT takes keypath as []byte, so we concatenate the keys arrays
+	mptKey := append(merklePath.KeyPath[0], merklePath.KeyPath[1]...)
+
 	// Inclusion verification only supports MPT tries currently
-	// KeyPath structure is arbitrary and we could structure it as we see fit
-	// or we could add a new type that's more compatible with ethereum
-	verifiedValue, err := mpt.VerifyMerklePatriciaTrieProof(consensusState.StateRoot, merklePath.KeyPath[0], proof)
+	verifiedValue, err := mpt.VerifyMerklePatriciaTrieProof(consensusState.StateRoot, mptKey, proof)
 	if err != nil {
 		return fmt.Errorf("inclusion verification failed: %w", err)
 	}
@@ -182,10 +183,11 @@ func (cs ClientState) verifyNonMembership(
 		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
+	// MPT takes keypath as []byte, so we concatenate the keys arrays
+	mptKey := append(merklePath.KeyPath[0], merklePath.KeyPath[1]...)
+
 	// Inclusion verification only supports MPT tries currently
-	// KeyPath structure is arbitrary and we could structure it as we see fit
-	// or we could add a new type that's more compatible with ethereum
-	verifiedValue, err := mpt.VerifyMerklePatriciaTrieProof(consensusState.StateRoot, merklePath.KeyPath[0], proof)
+	verifiedValue, err := mpt.VerifyMerklePatriciaTrieProof(consensusState.StateRoot, mptKey, proof)
 	if err != nil {
 		return fmt.Errorf("inclusion verification failed: %w", err)
 	}
@@ -212,20 +214,6 @@ func (cs ClientState) getTimestampAtHeight(
 }
 
 //------------------------------------
-
-// Checking for misbehaviour is a noop for groth16
-// TODO: removed in favor of
-// The `CheckMisbehaviourAndUpdateState` function has been removed from `ClientState` interface.
-// This functionality is now encapsulated by the usage of `VerifyClientMessage`, `CheckForMisbehaviour`, `UpdateStateOnMisbehaviour`.
-
-// func (cs ClientState) CheckMisbehaviourAndUpdateState(
-// 	ctx sdk.Context,
-// 	cdc codec.BinaryCodec,
-// 	clientStore storetypes.KVStore,
-// 	misbehaviour exported.Misbehaviour,
-// ) (exported.ClientState, error) {
-// 	return &cs, nil
-// }
 
 // CheckForMisbehaviour is a noop for groth16
 func (ClientState) CheckForMisbehaviour(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, msg exported.ClientMessage) bool {
