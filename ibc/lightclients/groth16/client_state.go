@@ -124,12 +124,12 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 // The following are modified methods from the v9 IBC Client interface. The idea is to make
 // it easy to update this client once Celestia moves to v9 of IBC
 func (cs ClientState) verifyMembership(
-	ctx context.Context,
+	_ context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
+	_ uint64,
+	_ uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
@@ -164,12 +164,12 @@ func (cs ClientState) verifyMembership(
 // VerifyNonMembership verifies a proof of the absence of a key in the Merkle tree.
 // It's the same as VerifyMembership, but the value is nil
 func (cs ClientState) verifyNonMembership(
-	ctx context.Context,
+	_ context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
+	_ uint64,
+	_ uint64,
 	proof []byte,
 	path exported.Path,
 ) error {
