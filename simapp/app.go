@@ -101,6 +101,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
@@ -461,6 +462,9 @@ func NewSimApp(
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
+	groth16LightClientModule := groth16.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(groth16.ModuleName, &groth16LightClientModule)
+
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
@@ -510,6 +514,7 @@ func NewSimApp(
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
+		groth16.NewAppModule(groth16LightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
 	)
 
