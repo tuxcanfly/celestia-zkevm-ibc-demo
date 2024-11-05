@@ -1,11 +1,10 @@
-package mpt_test
+package mpt
 
 import (
 	"bytes"
 	mrand "math/rand"
 	"testing"
 
-	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -26,7 +25,7 @@ type kv struct {
 var prng = initRnd()
 
 func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
-	trie, vals := randomTrie(500)
+	trie, vals := RandomTrie(500)
 	root := trie.Hash()
 	for i, prover := range makeProvers(trie) {
 
@@ -39,7 +38,7 @@ func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
 				t.Fatalf("prover %d: missing key %x while constructing proof", i, kv.k)
 			}
 
-			val, err := mpt.VerifyMerklePatriciaTrieProof(root.Bytes(), kv.k, proofBytes)
+			val, err := VerifyMerklePatriciaTrieProof(root.Bytes(), kv.k, proofBytes)
 			if err != nil {
 				t.Fatalf("prover %d: failed to verify proof for key %x: %v\nraw proof: %x", i, kv.k, err, proof)
 			}
@@ -50,7 +49,7 @@ func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
 	}
 }
 
-func randomTrie(n int) (trie *gethtrie.Trie, vals map[string]*kv) {
+func RandomTrie(n int) (trie *gethtrie.Trie, vals map[string]*kv) {
 	trie = gethtrie.NewEmpty(newTestDatabase(rawdb.NewMemoryDatabase(), rawdb.HashScheme))
 	vals = make(map[string]*kv)
 	for i := byte(0); i < 100; i++ {
@@ -85,18 +84,18 @@ func initRnd() *mrand.Rand {
 
 // makeProvers creates Merkle trie provers based on different implementations to
 // test all variations.
-func makeProvers(trie *gethtrie.Trie) []func(key []byte) *mpt.ProofList {
-	var provers []func(key []byte) *mpt.ProofList
+func makeProvers(trie *gethtrie.Trie) []func(key []byte) *ProofList {
+	var provers []func(key []byte) *ProofList
 
 	// Create a direct trie based Merkle prover
-	provers = append(provers, func(key []byte) *mpt.ProofList {
-		var proof mpt.ProofList
+	provers = append(provers, func(key []byte) *ProofList {
+		var proof ProofList
 		trie.Prove(key, &proof)
 		return &proof
 	})
 	// Create a leaf iterator based Merkle prover
-	provers = append(provers, func(key []byte) *mpt.ProofList {
-		var proof mpt.ProofList
+	provers = append(provers, func(key []byte) *ProofList {
+		var proof ProofList
 		if it := gethtrie.NewIterator(trie.MustNodeIterator(key)); it.Next() && bytes.Equal(key, it.Key) {
 			for _, p := range it.Prove() {
 				proof.Put(crypto.Keccak256(p), p)
@@ -108,7 +107,7 @@ func makeProvers(trie *gethtrie.Trie) []func(key []byte) *mpt.ProofList {
 }
 
 // Converts proofList to []byte by encoding it with gob
-func proofListToBytes(proof mpt.ProofList) ([]byte, error) {
+func proofListToBytes(proof ProofList) ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
 	if err := encoder.Encode(proof); err != nil {

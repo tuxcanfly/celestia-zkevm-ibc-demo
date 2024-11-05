@@ -10,6 +10,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -223,6 +224,23 @@ func (suite *Groth16TestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
 	)
 }
 
+func (suite *Groth16TestSuite) TestVerifyMembership() {
+	suite.SetupTest() // reset
+	var testingpath *ibctesting.Path
+	testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+	testingpath.SetChannelOrdered()
+	testingpath.Setup()
+
+	latestHeight := testingpath.EndpointB.GetClientLatestHeight()
+	key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, latestHeight)
+	merklePath := commitmenttypes.NewMerklePath(key)
+	fmt.Println(merklePath, "MERKLE PATH")
+
+	// let's create a random trie of 50 nodes
+	trie, vals := mpt.RandomTrie(50)
+
+}
+
 // func (suite *Groth16TestSuite) TestVerifyMembership() {
 // 	var (
 // 		testingpath      *ibctesting.Path
@@ -256,7 +274,7 @@ func (suite *Groth16TestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
 // 				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
 // 				suite.Require().NoError(err)
 
-// 				proof, proofHeight = suite.chainB.QueryProof(key)
+// proof, proofHeight = suite.chainB.QueryProof(key)
 
 // 				consensusState, ok := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
 // 				suite.Require().True(ok)
