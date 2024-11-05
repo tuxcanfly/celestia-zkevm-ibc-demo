@@ -10,7 +10,6 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -18,6 +17,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 )
 
 var (
@@ -237,7 +237,7 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 	fmt.Println(merklePath, "MERKLE PATH")
 
 	// let's create a random trie of 50 nodes
-	trie, vals := mpt.RandomTrie(50)
+	trie, vals := mpt.
 
 }
 

@@ -2,27 +2,15 @@ package mpt
 
 import (
 	"bytes"
-	mrand "math/rand"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/crypto"
 	gethtrie "github.com/ethereum/go-ethereum/trie"
 	"github.com/stretchr/testify/require"
 
-	crand "crypto/rand"
-	"encoding/binary"
 	"encoding/gob"
 	"fmt"
 )
-
-type kv struct {
-	k, v []byte
-	t    bool
-}
-
-var prng = initRnd()
 
 func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
 	trie, vals := RandomTrie(500)
@@ -47,39 +35,6 @@ func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
 			}
 		}
 	}
-}
-
-func RandomTrie(n int) (trie *gethtrie.Trie, vals map[string]*kv) {
-	trie = gethtrie.NewEmpty(newTestDatabase(rawdb.NewMemoryDatabase(), rawdb.HashScheme))
-	vals = make(map[string]*kv)
-	for i := byte(0); i < 100; i++ {
-		value := &kv{common.LeftPadBytes([]byte{i}, 32), []byte{i}, false}
-		value2 := &kv{common.LeftPadBytes([]byte{i + 10}, 32), []byte{i}, false}
-		trie.MustUpdate(value.k, value.v)
-		trie.MustUpdate(value2.k, value2.v)
-		vals[string(value.k)] = value
-		vals[string(value2.k)] = value2
-	}
-	for i := 0; i < n; i++ {
-		value := &kv{randBytes(32), randBytes(20), false}
-		trie.MustUpdate(value.k, value.v)
-		vals[string(value.k)] = value
-	}
-	return trie, vals
-}
-
-func randBytes(n int) []byte {
-	r := make([]byte, n)
-	prng.Read(r)
-	return r
-}
-
-func initRnd() *mrand.Rand {
-	var seed [8]byte
-	crand.Read(seed[:])
-	rnd := mrand.New(mrand.NewSource(int64(binary.LittleEndian.Uint64(seed[:]))))
-	fmt.Printf("Seed: %x\n", seed)
-	return rnd
 }
 
 // makeProvers creates Merkle trie provers based on different implementations to
