@@ -1,5 +1,5 @@
 package groth16
 
 const (
-	ModuleName = "07-tendermint"
+	ModuleName = "08-groth16"
 )

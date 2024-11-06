@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	SubModuleName = "tendermint-client"
+	SubModuleName = "groth16-client"
 )
 
 // IBC tendermint client sentinel errors

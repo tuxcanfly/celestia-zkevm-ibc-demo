@@ -98,7 +98,10 @@ func (l LightClientModule) VerifyMembership(
 	value []byte,
 ) error {
 	fmt.Println("helloooo")
+	fmt.Println("clientID", clientID)
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	fmt.Println("clientStore", clientStore)
+	
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)

@@ -10,6 +10,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -232,8 +233,12 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 	testingpath.SetChannelOrdered()
 	testingpath.Setup()
 
+	// suite.chainA.NewEndpoint(testingpath.EndpointA.ClientID, testingpath.EndpointA.ConnectionID, testingpath.EndpointA.ChannelID)
+	endpointB := ibctesting.NewEndpoint(testingpath.EndpointB.ClientID, testingpath.EndpointB.ConnectionID, testingpath.EndpointB.ChannelID)
+	endpointA := ibctesting.NewEndpoint(testingpath.EndpointA.ClientID, testingpath.EndpointA.ConnectionID, testingpath.EndpointA.ChannelID)
+
+
 	latestHeight := testingpath.EndpointB.GetClientLatestHeight()
-	fmt.Println("clientID: ", testingpath.EndpointB.ClientID)
 	key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, latestHeight)
 	merklePath := commitmenttypes.NewMerklePath(key)
 	// path, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
@@ -255,8 +260,18 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 	suite.Require().NoError(err)
 
 	// verify the proof
-	lightClientModule, err := suite.chainB.App.GetIBCKeeper().ClientKeeper.Route(suite.chainB.GetContext(), testingpath.EndpointB.ClientID)
-	suite.Require().NoError(err)
+	fmt.Println("clientID: ", testingpath.EndpointA.ClientID)
+
+	// lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+	// suite.Require().NoError(err)
+	// set up the groth16 light client module
+	zkClientModule := groth16.NewLightClientModule(suite.chainA.Codec, suite.chainA.App.GetIBCKeeper().ClientKeeper.GetStoreProvider())
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.AddRoute(groth16.SubModuleName, zkClientModule)
+
+	// lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), groth16.SubModuleName)
+	// require.NoError(suite.T(), err)
+
+	fmt.Println(testingpath.EndpointA.ClientID, "ClientID")
 
 	// set consensus state to the trie root
 	consensusState := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
@@ -267,7 +282,7 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 	}
 	testingpath.EndpointB.SetConsensusState(&newConsState, latestHeight)
 
-	err = lightClientModule.VerifyMembership(
+	err = zkClientModule.VerifyMembership(
 		suite.chainA.GetContext(), testingpath.EndpointA.ClientID, latestHeight, 1, 1,
 		proofBytes, merklePath, val,
 	)
