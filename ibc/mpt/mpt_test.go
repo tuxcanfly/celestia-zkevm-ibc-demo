@@ -7,9 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	gethtrie "github.com/ethereum/go-ethereum/trie"
 	"github.com/stretchr/testify/require"
-
-	"encoding/gob"
-	"fmt"
 )
 
 func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
@@ -19,7 +16,7 @@ func TestVerifyMerklePatriciaTrieProof(t *testing.T) {
 
 		for _, kv := range vals {
 			proof := prover(kv.k)
-			proofBytes, err := proofListToBytes(*proof)
+			proofBytes, err := ProofListToBytes(*proof)
 			require.NoError(t, err)
 
 			if proof == nil {
@@ -61,12 +58,4 @@ func makeProvers(trie *gethtrie.Trie) []func(key []byte) *ProofList {
 	return provers
 }
 
-// Converts proofList to []byte by encoding it with gob
-func proofListToBytes(proof ProofList) ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	if err := encoder.Encode(proof); err != nil {
-		return nil, fmt.Errorf("failed to encode proofList to bytes: %w", err)
-	}
-	return buf.Bytes(), nil
-}
+

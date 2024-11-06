@@ -135,6 +135,7 @@ func (cs ClientState) verifyMembership(
 	value []byte,
 ) error {
 	// Path validation
+	fmt.Println("made it here")
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
 		return sdkerrors.Wrapf(commitmenttypes.ErrInvalidProof, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
@@ -146,7 +147,7 @@ func (cs ClientState) verifyMembership(
 	}
 
 	// MPT takes keypath as []byte, so we concatenate the keys arrays
-	mptKey := append(merklePath.KeyPath[0], merklePath.KeyPath[1]...)
+	mptKey := merklePath.KeyPath[0]
 
 	// Inclusion verification only supports MPT tries currently
 	verifiedValue, err := mpt.VerifyMerklePatriciaTrieProof(consensusState.StateRoot, mptKey, proof)

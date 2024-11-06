@@ -1,14 +1,17 @@
 package mpt
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/gob"
 	"fmt"
 
 	crand "crypto/rand"
+	mrand "math/rand"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	gethtrie "github.com/ethereum/go-ethereum/trie"
-	mrand "math/rand"
 )
 
 type kv struct {
@@ -49,4 +52,14 @@ func randBytes(n int) []byte {
 	r := make([]byte, n)
 	prng.Read(r)
 	return r
+}
+
+// Converts proofList to []byte by encoding it with gob
+func ProofListToBytes(proof ProofList) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	if err := encoder.Encode(proof); err != nil {
+		return nil, fmt.Errorf("failed to encode proofList to bytes: %w", err)
+	}
+	return buf.Bytes(), nil
 }
