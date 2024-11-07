@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -34,6 +35,26 @@ var (
 	upgradePath        = []string{"upgrade", "upgradedIBCState"}
 	invalidUpgradePath = []string{"upgrade", ""}
 )
+
+type ClientConfig interface {
+	GetClientType() string
+}
+
+type Grtoth16Config struct {
+	TrustLevel      ibctm.Fraction
+	TrustingPeriod  time.Duration
+	UnbondingPeriod time.Duration
+	MaxClockDrift   time.Duration
+}
+
+func NewGrtoth16Config() *Grtoth16Config {
+	return &Grtoth16Config{
+	}
+}
+
+func (*Grtoth16Config) GetClientType() string {
+	return groth16.ModuleName
+}
 
 type Groth16TestSuite struct {
 	testifysuite.Suite
