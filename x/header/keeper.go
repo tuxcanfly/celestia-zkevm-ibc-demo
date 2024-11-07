@@ -9,7 +9,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
-const retentionPeriod = uint64(10000)
 
 type Keeper struct {
 	// binaryCodec is used to marshal and unmarshal data from the store.
