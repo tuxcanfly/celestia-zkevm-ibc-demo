@@ -5,4 +5,5 @@ package header
 const (
 	retentionPeriod = uint64(10000)
 	ModuleName 	= "header"
+	StoreKey 	= ModuleName
 )

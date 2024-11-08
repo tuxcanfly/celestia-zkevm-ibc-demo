@@ -3,7 +3,7 @@ package header
 import (
 	"context"
 
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -14,15 +14,15 @@ type Keeper struct {
 
 	// storeKey is key that is used to fetch the signal store from the multi
 	// store.
-	storeKey storetypes.StoreKey
+	storeService store.KVStoreService
 }
 
 func NewKeeper(
-	binaryCodec codec.BinaryCodec, storeKey storetypes.StoreKey,
-) *Keeper {
-	return &Keeper{
-		binaryCodec: binaryCodec,
-		storeKey:    storeKey,
+	binaryCodec codec.BinaryCodec, storeService store.KVStoreService,
+) Keeper {
+	return Keeper{
+		binaryCodec:  binaryCodec,
+		storeService: storeService,
 	}
 }
 
@@ -37,26 +37,31 @@ func (k Keeper) BeginBlocker(ctx sdk.Context) {
 }
 
 func (k Keeper) SaveHeaderHash(ctx context.Context, height int64, headerHash []byte) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	store := sdkCtx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 	store.Set(sdk.Uint64ToBigEndian(uint64(height)), headerHash)
 }
 
 func (k Keeper) GetHeaderHash(ctx context.Context, height int64) ([]byte, bool) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	store := sdkCtx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 	key := sdk.Uint64ToBigEndian(uint64(height))
-	if !store.Has(key) {
+	key, err := store.Get(key)
+	if err != nil {
 		return nil, false
 	}
-	headerHash := store.Get(key)
+	headerHash, err := store.Get(key)
+	if err != nil {
+		return nil, false
+	}
 	return headerHash, true
 }
 
 // PruneHeaders prunes block headers that are older than the retention window.
 func (k Keeper) PruneHeaders(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(nil, nil) // Start from the lowest key
+	store := k.storeService.OpenKVStore(ctx)
+	iterator, err := store.Iterator(nil, nil) // Start from the lowest key
+	if err != nil {
+		panic(err)
+	}
 	defer iterator.Close()
 
 	latestHeight, ok := k.GetLatestSavedBlockHeight(ctx)
@@ -82,9 +87,11 @@ func (k Keeper) PruneHeaders(ctx sdk.Context) {
 }
 
 func (k Keeper) GetLatestSavedBlockHeight(ctx context.Context) (uint64, bool) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	store := sdkCtx.KVStore(k.storeKey)
-	storeIterator := store.ReverseIterator(nil, nil)
+	store := k.storeService.OpenKVStore(ctx)
+	storeIterator, err := store.ReverseIterator(nil, nil)
+	if err != nil {
+		panic(err)
+	}
 	defer storeIterator.Close()
 
 	if !storeIterator.Valid() {
