@@ -1,6 +1,7 @@
 package header
 
 import (
+	"context"
 	"encoding/json"
 
 	"cosmossdk.io/api/tendermint/abci"
@@ -10,9 +11,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 func init() {
@@ -80,6 +81,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
+
+func (am AppModule) BeginBlock(ctx context.Context) {
+	c := sdk.UnwrapSDKContext(ctx)
+	am.keeper.BeginBlocker(c)
+}
 
 // InitGenesis does nothing because no predefined state is required for this module and no params are set.
 func (AppModule) InitGenesis(_ sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
