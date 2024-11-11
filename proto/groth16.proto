@@ -2,13 +2,13 @@ syntax = "proto3";
 
 package celestia.ibc.lightclients.groth16.v1;
 
-option go_package = "github.com/celestiaorg/celestia-app/ibc/lightclients/groth16";
+option go_package = "github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
 // ClientState defines a groth16 client that holds two keys for verifying state
-// transition and inclusion proofs needed to verify IBC packets
+// transition proofs needed to verify IBC packets
 message ClientState {
   option (gogoproto.goproto_getters) = false;
   // latest height of the client state
@@ -20,10 +20,11 @@ message ClientState {
   bytes state_transition_verifier_key = 2
       [ (gogoproto.moretags) = "yaml:\"stp_verifier_key\"" ];
 
-  // groth16 state inclusion proof verifier key. Verifies proofs that a key
-  // value pair is a child of a given state root. Only BN254 curve is supported
-  bytes state_inclusion_verifier_key = 3
-      [ (gogoproto.moretags) = "yaml:\"sip_verifier_key\"" ];
+  // Provided during initialization of the IBC Client
+  bytes code_commitment = 3;
+
+  // Provided during initialization of the IBC Client
+  bytes genesis_state_root = 4;
 }
 
 // ConsensusState defines a groth16 consensus state.
