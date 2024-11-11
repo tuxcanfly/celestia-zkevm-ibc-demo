@@ -114,7 +114,20 @@ func (cs ClientState) UpdateState(
 		return []exported.Height{}
 	}
 
-	witness, err := header.GenerateStateTransitionPublicWitness(trustedConsensusState.StateRoot)
+	// initialize the public witness
+	publicWitness := PublicWitness{
+		TrustedHeight:             header.TrustedHeight,
+		TrustedCelestiaHeaderHash: header.TrustedCelestiaHeaderHash,
+		TrustedRollupStateRoot:    trustedConsensusState.StateRoot,
+		// TODO: check if NewHeight is the same as GetHeight
+		NewHeight:             header.NewHeight,
+		NewRollupStateRoot:    header.NewStateRoot,
+		NewCelestiaHeaderHash: header.NewCelestiaHeaderHash,
+		CodeCommitment:        cs.CodeCommitment,
+		GenesisStateRoot:      cs.GenesisStateRoot,
+	}
+
+	witness, err := publicWitness.Generate()
 	if err != nil {
 		panic(fmt.Sprintf("failed to generate state transition public witness: %s", err))
 	}
@@ -173,6 +186,9 @@ func (cs ClientState) UpdateState(
 	// set metadata for this consensus state
 	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 	height, ok := header.GetHeight().(clienttypes.Height)
+	if !ok {
+		panic(fmt.Sprintf("invalid height type %T", header.GetHeight()))
+	}
 
 	return []exported.Height{height}
 }

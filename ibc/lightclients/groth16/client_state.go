@@ -28,11 +28,14 @@ var _ exported.ClientState = (*ClientState)(nil)
 // NewClientState creates a new ClientState instance
 func NewClientState(
 	latestHeight uint64,
-	stateTransitionVerifierKey, stateInclusionVerifierKey []byte,
+	stateTransitionVerifierKey, stateInclusionVerifierKey []byte, codeCommitment []byte,
+	genesisStateRoot []byte,
 ) *ClientState {
 	return &ClientState{
 		LatestHeight:               latestHeight,
 		StateTransitionVerifierKey: stateTransitionVerifierKey,
+		CodeCommitment:             codeCommitment,
+		GenesisStateRoot:           genesisStateRoot,
 	}
 }
 
@@ -51,9 +54,9 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 
 // Status returns the status of the groth16 client.
 func (cs ClientState) status(
-	ctx context.Context,
-	clientStore storetypes.KVStore,
-	cdc codec.BinaryCodec,
+	_ context.Context,
+	_ storetypes.KVStore,
+	_ codec.BinaryCodec,
 ) exported.Status {
 	return exported.Active
 }
@@ -147,6 +150,7 @@ func (cs ClientState) verifyMembership(
 	}
 
 	// MPT takes keypath as []byte, so we concatenate the keys arrays
+	// TODO we might have to change this because based on tests the keypath is always one element
 	mptKey := merklePath.KeyPath[0]
 
 	// Inclusion verification only supports MPT tries currently
@@ -185,6 +189,7 @@ func (cs ClientState) verifyNonMembership(
 	}
 
 	// MPT takes keypath as []byte, so we concatenate the keys arrays
+	// TODO we might have to change this because based on tests the keypath is always one element
 	mptKey := append(merklePath.KeyPath[0], merklePath.KeyPath[1]...)
 
 	// Inclusion verification only supports MPT tries currently
