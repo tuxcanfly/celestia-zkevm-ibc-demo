@@ -51,7 +51,6 @@ func (cs ClientState) verifyHeader(ctx context.Context, clientStore storetypes.K
 	return nil
 }
 
-// TODO: look into refactoring this
 // * (modules/core/02-client) [\#1210](https://github.com/cosmos/ibc-go/pull/1210)
 // Removing `CheckHeaderAndUpdateState` from `ClientState` interface & associated light client implementations.
 
@@ -92,13 +91,16 @@ func (cs ClientState) UpdateState(
 		return []exported.Height{}
 	}
 
-	// Q: prune old consensus state?
 	// performance: do not prune in checkTx
 	// simulation must prune for accurate gas estimation
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 
 	// check for duplicate update
+	// TODO: remove this because header is validated in VerifyClientMessage
 	consensusState, err := GetConsensusState(clientStore, cdc, header.GetHeight())
+	if err != nil {
+		panic(fmt.Sprintf("failed to retrieve consensus state: %s", err))
+	}
 	if consensusState != nil {
 		// perform no-op
 		return []exported.Height{header.GetHeight()}
@@ -181,6 +183,7 @@ func (cs ClientState) UpdateState(
 	}
 
 	// Q: do we need to set client state with updated height?
+	setClientState(clientStore, cdc, &cs)
 	// set consensus state in client store
 	SetConsensusState(clientStore, cdc, newConsensusState, header.GetHeight())
 	// set metadata for this consensus state
