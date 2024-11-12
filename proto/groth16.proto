@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package celestia.ibc.lightclients.groth16.v1;
+package proto;
 
 option go_package = "github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16";
 

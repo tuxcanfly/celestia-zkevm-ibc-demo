@@ -31,23 +31,21 @@ help: Makefile
 
 ## build: Build the celestia-appd binary into the ./build directory.
 build: mod
-	@cd ./cmd/celestia-appd
+	@cd ./simapp/simd/
 	@mkdir -p build/
-	@go build $(BUILD_FLAGS) -o build/ ./cmd/celestia-appd
+	@go build $(BUILD_FLAGS) -o build/ ./simapp/simd/
 .PHONY: build
 
 ## install: Build and install the celestia-appd binary into the $GOPATH/bin directory.
-install: check-bbr
-	@echo "--> Installing celestia-appd"
-	@go install $(BUILD_FLAGS) ./cmd/celestia-appd
+install:
+	@echo "--> Installing simd"
+	@go install $(BUILD_FLAGS) ./simapp/simd/
 .PHONY: install
 
 ## mod: Update all go.mod files.
 mod:
 	@echo "--> Updating go.mod"
 	@go mod tidy
-	@echo "--> Updating go.mod in ./test/interchain"
-	@(cd ./test/interchain && go mod tidy)
 .PHONY: mod
 
 ## mod-verify: Verify dependencies have expected content.
@@ -132,6 +130,14 @@ test:
 	@echo "--> Running tests"
 	@go test -timeout 30m ./...
 .PHONY: test
+
+# make init-simapp initializes a single local node network
+# it is useful for testing and development
+# Usage: make install && make init-simapp && simd start
+# Warning: make init-simapp will remove all data in simapp home directory
+#? init-simapp: Run scripts/init-simapp.sh
+init-simapp:
+	./scripts/init-simapp.sh
 
 
 

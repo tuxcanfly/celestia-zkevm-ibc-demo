@@ -1,5 +1,16 @@
-# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
-version: v1
+version: v1beta1
+
+name: buf.build/celestiaorg/celestia-zkevm-ibc-demo
+deps:
+  - buf.build/cosmos/cosmos-proto
+  - buf.build/cosmos/gogo-proto
+  - buf.build/googleapis/googleapis
+build:
+  roots:
+    - proto
+    - third_party/proto
+  excludes:
+    - third_party/proto/google/protobuf
 lint:
   use:
     - STANDARD
