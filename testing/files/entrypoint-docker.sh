@@ -89,8 +89,8 @@ jq --argjson pubKey "$PUB_KEY" '.consensus["validators"]=[{"address": "'$ADDRESS
 # Start the node (remove the --pruning=nothing flag if historical queries are not needed)
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
---rollkit.aggregator --rollkit.da_address http://192.167.3.0:26658 --rpc.laddr tcp://127.0.0.1:36657 --grpc.address 127.0.0.1:9290 --p2p.laddr "0.0.0.0:36656" \
---api.enable --api.swagger --minimum-gas-prices=0.0001abgt\
+--rollkit.aggregator --rollkit.da_address http://celestia-network-bridge:26658 --rpc.laddr tcp://127.0.0.1:36657 --grpc.address 127.0.0.1:9290 --p2p.laddr "0.0.0.0:36656" \
+--api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty
@@ -100,6 +100,8 @@ if [ -n "$RPC_DIAL_URL" ]; then
 	echo "Overwriting the default dial url with $RPC_DIAL_URL"
 	BEACON_START_CMD="$BEACON_START_CMD --beacon-kit.engine.rpc-dial-url ${RPC_PREFIX}${RPC_DIAL_URL}"
 fi
+
+echo $BEACON_START_CMD
 
 # run the beacon node
 eval $BEACON_START_CMD
