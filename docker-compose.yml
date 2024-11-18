@@ -1,0 +1,86 @@
+services:
+  beacond:
+    image: beacond:latest
+    environment:
+      - TESTAPP_FILES_DIR=/beacon-kit/testing/files  # Add the actual path
+      - JWT_SECRET_PATH=${TESTAPP_FILES_DIR}/jwt.hex
+    volumes:
+      - ./testing/files:/beacon-kit/testing/files
+      - ./.tmp:/beacon-kit/.tmp
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: /beacon-kit/testing/files/entrypoint-docker.sh
+    depends_on:
+      - celestia-network-bridge
+      - reth
+    networks:
+      - beacon-network
+
+  reth:
+    image: ghcr.io/paradigmxyz/reth  # Use the official Reth image
+    container_name: reth
+    ports:
+      - "30303:30303"  # P2P port
+      - "8545:8545"    # HTTP port
+      - "8551:8551"    # Auth RPC port
+    volumes:
+      - ./testing/files:/testapp_files  # Mount the directory for test app files
+      - ./.tmp:/.tmp                    # Mount a temporary directory for data
+    command: |
+      node
+      --chain /testapp_files/eth-genesis.json
+      --http
+      --http.addr 0.0.0.0
+      --http.api eth,net
+      --authrpc.addr 0.0.0.0
+      --authrpc.jwtsecret /testapp_files/jwt.hex
+      --datadir /.tmp/eth-home
+      --ipcpath /.tmp/eth-home/eth-engine.ipc
+    networks:
+      - beacon-network
+
+  celestia-network-validator:
+    image: ghcr.io/celestiaorg/celestia-app:v3.0.0-mocha
+    container_name: celestia-network-validator
+    volumes:
+      - ./.tmp/celestia-validator:/home/celestia
+      - ./testing/files/celestia-validator:/testapp_files
+    ports:
+      - "9090:9090"
+      - "26656:26656"
+      - "26657:26657"
+    entrypoint: /testapp_files/entrypoint.sh
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      beacon-network:
+        ipv4_address: 192.167.10.0
+
+  celestia-network-bridge:
+    image: ghcr.io/celestiaorg/celestia-node:v0.20.1-mocha
+    container_name: celestia-network-bridge
+    environment:
+      - P2P_NETWORK=private
+      - "CELESTIA_CUSTOM=private:BFCEC14C1A50F3549777ED9EF350A9D79BE826C7836CD4FBEFE9C9C4F61A111F"
+    volumes:
+      - ./.tmp/celestia-bridge:/home/celestia
+    command: celestia bridge start --p2p.network private --core.ip 192.167.10.0 --rpc.skip-auth
+    ports:
+      - "26658:26658"
+      - "2121:2121"
+    depends_on:
+      celestia-network-validator:
+        condition: service_healthy
+    networks:
+      beacon-network:
+        ipv4_address: 192.167.3.0
+
+networks:
+  beacon-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.167.0.0/16
