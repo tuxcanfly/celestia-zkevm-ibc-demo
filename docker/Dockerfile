@@ -46,9 +46,9 @@ RUN apk update && apk add --no-cache \
     -u ${UID}
 
 # Copy in the txsim binary
-COPY --from=builder /celestia_zkevm_ibc_demo/build/simd /bin/txsim
+COPY --from=builder /celestia_zkevm_ibc_demo/build/simd /bin/simd
 
-COPY --chown=${USER_NAME}:${USER_NAME} ../testing/files/entrypoint-docker.sh /opt/entrypoint.sh
+COPY --chown=${USER_NAME}:${USER_NAME} ../testing/files/simapp-validator/entrypoint.sh /opt/entrypoint.sh
 
 USER ${USER_NAME}
 
