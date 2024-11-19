@@ -126,11 +126,11 @@
                 },
                 "value": {
                   "denom": "stake",
-                  "amount": "50000000"
+                  "amount": "100000000000"
                 }
               }
             ],
-            "memo": "1f828b0ebaff1dfbb09198bba2d3d5053df05da0@10.10.2.31:26656",
+            "memo": "1f828b0ebaff1dfbb09198bba2d3d5053df05da0@192.168.1.5:26656",
             "timeout_height": "0",
             "extension_options": [],
             "non_critical_extension_options": []
@@ -159,7 +159,7 @@
             "tip": null
           },
           "signatures": [
-            "LTfoZYitWPJVRRbHJY+NHtpQLd2UNmLfaTSBat0DBLd4oTJVf6RgdSKx+sTFNcDak25MaBvmcXuJdxlCmVwvdA=="
+            "Bt04LeawWaU6cqgTUo4NJ1ZJNX443M/tgJ4BYbKVViVeA1/3K88NL2XxgE4ga7jAXtw9zJ70vttp6KYWegetgA=="
           ]
         }
       ]
