@@ -84,19 +84,6 @@ build-docker:
 	$(DOCKER) build -t celestiaorg/celestia-zk-ibc-demo -f docker/Dockerfile .
 .PHONY: build-docker
 
-## build-ghcr-docker: Build the celestia-appd docker image from the last commit. Requires docker.
-build-ghcr-docker:
-	@echo "--> Building Docker image"
-	$(DOCKER) build -t ghcr.io/celestiaorg/celestia-app:$(COMMIT) -f docker/Dockerfile .
-.PHONY: build-ghcr-docker
-
-## publish-ghcr-docker: Publish the celestia-appd docker image. Requires docker.
-publish-ghcr-docker:
-# Make sure you are logged in and authenticated to the ghcr.io registry.
-	@echo "--> Publishing Docker image"
-	$(DOCKER) push ghcr.io/celestiaorg/celestia-app:$(COMMIT)
-.PHONY: publish-ghcr-docker
-
 ## lint: Run all linters; golangci-lint, markdownlint, hadolint, yamllint.
 lint:
 	@echo "--> Running golangci-lint"
@@ -140,8 +127,14 @@ init-simapp:
 	./scripts/init-simapp.sh
 
 
+build-demo:
+	go build ./testing/demo/...
+.PHONY: build-demo
 
 
+run-demo:
+	go run ./testing/demo/main.go
+.PHONY: run-demo
 
 
 
