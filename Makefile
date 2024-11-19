@@ -81,7 +81,7 @@ proto-format:
 ## build-docker: Build the celestia-appd docker image from the current branch. Requires docker.
 build-docker:
 	@echo "--> Building Docker image"
-	$(DOCKER) build -t celestiaorg/celestia-app -f docker/Dockerfile .
+	$(DOCKER) build -t celestiaorg/celestia-zk-ibc-demo -f docker/Dockerfile .
 .PHONY: build-docker
 
 ## build-ghcr-docker: Build the celestia-appd docker image from the last commit. Requires docker.

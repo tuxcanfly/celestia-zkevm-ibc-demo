@@ -14,12 +14,12 @@ RUN apk update && apk add --no-cache \
     linux-headers \
     make \
     musl-dev
-COPY . /celestia-app
-WORKDIR /celestia-app
+COPY . /celestia_zkevm_ibc_demo
+WORKDIR /celestia_zkevm_ibc_demo
 
 RUN uname -a &&\
     CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    make txsim-build
+    make build
 
 # Stage 2: create a minimal image with the binary
 FROM docker.io/alpine:3.20
@@ -36,6 +36,7 @@ RUN apk update && apk add --no-cache \
     bash \
     curl \
     jq \
+    make \
     # Creates a user with $UID and $GID=$UID
     && adduser ${USER_NAME} \
     -D \
@@ -45,9 +46,9 @@ RUN apk update && apk add --no-cache \
     -u ${UID}
 
 # Copy in the txsim binary
-COPY --from=builder /celestia-app/build/txsim /bin/txsim
+COPY --from=builder /celestia_zkevm_ibc_demo/build/simd /bin/txsim
 
-COPY --chown=${USER_NAME}:${USER_NAME} docker/txsim/entrypoint.sh /opt/entrypoint.sh
+COPY --chown=${USER_NAME}:${USER_NAME} ../testing/files/entrypoint-docker.sh /opt/entrypoint.sh
 
 USER ${USER_NAME}
 
