@@ -28,7 +28,7 @@ func Start(ctx context.Context) error {
 		go func() {
 			select {
 			case err := <-errCh:
-				log.Println("error starting docker compose:", err)
+				log.Println("error running docker compose up:", err)
 			case <-ctx.Done():
 				return
 			}

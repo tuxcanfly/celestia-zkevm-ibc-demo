@@ -51,7 +51,9 @@ TMP_GENESIS=$HOMEDIR/config/tmp_genesis.json
 ETH_GENESIS=$(resolve_path "./testing/files/eth-genesis.json")
 echo "ETH_GENESIS: $ETH_GENESIS"
 JWT_SECRET_PATH=$(resolve_path "./testing/files/jwt.hex")
-echo "JWT_SECRET: $JWT_SECRET_PATH"
+echo "JWT_SECRET_PATH: $JWT_SECRET_PATH"
+DA_AUTH_TOKEN=$(cat "./testing/files/da_auth_token")
+echo "DA_AUTH_TOKEN: $DA_AUTH_TOKEN"
 
 # used to exit on first error (any non-zero exit code)
 set -e
@@ -90,7 +92,7 @@ jq --argjson pubKey "$PUB_KEY" '.consensus["validators"]=[{"address": "'$ADDRESS
 BEACON_START_CMD="./build/bin/beacond start --pruning=nothing "$TRACE" \
 --log_level $LOGLEVEL --api.enabled-unsafe-cors \
 --rollkit.aggregator --rollkit.da_address http://celestia-network-bridge:26658 --rpc.laddr tcp://127.0.0.1:36657 --grpc.address 127.0.0.1:9290 --p2p.laddr "0.0.0.0:36656" \
---api.enable --api.swagger --minimum-gas-prices=0.0001abgt \
+--api.enable --api.swagger --minimum-gas-prices=0.0001abgt --rollkit.da_auth_token ${DA_AUTH_TOKEN} \
 --home $HOMEDIR --beacon-kit.engine.jwt-secret-path ${JWT_SECRET_PATH}"
 
 # Conditionally add the rpc-dial-url flag if RPC_DIAL_URL is not empty

@@ -65,8 +65,10 @@ services:
       - P2P_NETWORK=private
       - "CELESTIA_CUSTOM=private:BFCEC14C1A50F3549777ED9EF350A9D79BE826C7836CD4FBEFE9C9C4F61A111F"
     volumes:
+      - ./testing/files/celestia-bridge:/testapp_files
       - ./.tmp/celestia-bridge:/home/celestia
-    command: celestia bridge start --p2p.network private --core.ip celestia-network-validator --rpc.skip-auth
+    entrypoint: /testapp_files/entrypoint.sh
+    command: celestia bridge start --p2p.network private --core.ip celestia-network-validator --rpc.addr 0.0.0.0:26658
     ports:
       - "26658:26658"
       - "2121:2121"
