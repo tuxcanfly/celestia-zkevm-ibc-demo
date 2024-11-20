@@ -48,11 +48,9 @@ RUN apk update && apk add --no-cache \
 # Copy in the txsim binary
 COPY --from=builder /celestia_zkevm_ibc_demo/build/simd /bin/simd
 
-COPY --chown=${USER_NAME}:${USER_NAME} ../testing/files/simapp-validator/entrypoint.sh /opt/entrypoint.sh
-
 USER ${USER_NAME}
 
 # Set the working directory to the home directory.
 WORKDIR ${CELESTIA_HOME}
 
-ENTRYPOINT [ "/bin/bash", "/opt/entrypoint.sh" ]
+CMD [ "/bin/simd" ]

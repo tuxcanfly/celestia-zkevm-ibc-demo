@@ -1,6 +1,7 @@
 services:
   beacond:
     image: beacond:latest
+    container_name: beacond
     environment:
       - TESTAPP_FILES_DIR=/beacon-kit/testing/files  # Add the actual path
       - JWT_SECRET_PATH=${TESTAPP_FILES_DIR}/jwt.hex
@@ -75,6 +76,18 @@ services:
     depends_on:
       celestia-network-validator:
         condition: service_healthy
+    networks:
+      - beacon-network
+
+  simapp-validator:
+    image: celestiaorg/celestia-zk-ibc-demo:latest
+    container_name: simapp-validator
+    volumes:
+      - ./.tmp/simapp-validator:/home/celestia
+      - ./testing/files/simapp-validator:/testapp_files
+    entrypoint: /testapp_files/entrypoint.sh
+    ports:
+      - "5123:26657"
     networks:
       - beacon-network
 
