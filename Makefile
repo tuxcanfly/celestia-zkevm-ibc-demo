@@ -10,10 +10,7 @@ PACKAGE_NAME          := github.com/regen-network/protobuf v1.3.2-alpha.regen.1
 # Before upgrading the GOLANG_CROSS_VERSION, please verify that a Docker image exists with the new tag.
 # See https://github.com/goreleaser/goreleaser-cross/pkgs/container/goreleaser-cross
 GOLANG_CROSS_VERSION  ?= v1.23.1
-# Set this to override the max square size of the binary
-OVERRIDE_MAX_SQUARE_SIZE ?=
-# Set this to override the upgrade height delay of the binary
-OVERRIDE_UPGRADE_HEIGHT_DELAY ?=
+GHCR_REPO := ghcr.io/celestiaorg/simapp
 
 # process linker flags
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=celestia-zkevm-ibc-demo \
@@ -81,8 +78,13 @@ proto-format:
 ## build-docker: Build the celestia-appd docker image from the current branch. Requires docker.
 build-docker:
 	@echo "--> Building Docker image"
-	$(DOCKER) build -t celestiaorg/celestia-zk-ibc-demo -f docker/Dockerfile .
+	$(DOCKER) build -t $(GHCR_REPO) -f docker/Dockerfile .
 .PHONY: build-docker
+
+## publish-docker: Publish the celestia-appd docker image to the docker hub. Requires docker and authentication.
+publish-docker:
+	$(DOCKER) push $(GHCR_REPO)
+.PHONY: publish-docker
 
 ## lint: Run all linters; golangci-lint, markdownlint, hadolint, yamllint.
 lint:

@@ -80,7 +80,7 @@ services:
       - beacon-network
 
   simapp-validator:
-    image: celestiaorg/celestia-zk-ibc-demo:latest
+    image: ghcr.io/celestiaorg/simapp:latest
     container_name: simapp-validator
     volumes:
       - ./.tmp/simapp-validator:/home/celestia
