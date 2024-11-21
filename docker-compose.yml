@@ -9,7 +9,7 @@ services:
       - ./testing/files:/beacon-kit/testing/files
       - ./.tmp:/beacon-kit/.tmp
       - /var/run/docker.sock:/var/run/docker.sock
-    entrypoint: /beacon-kit/testing/files/entrypoint-docker.sh
+    entrypoint: /beacon-kit/testing/files/entrypoint.sh
     depends_on:
       - celestia-network-bridge
       - reth

@@ -39,6 +39,13 @@
           "pub_key": null,
           "account_number": "0",
           "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "celestia12rl5j5hre254frgdxxada5k34825haf5h3r2ep",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
         }
       ]
     },
@@ -52,6 +59,15 @@
       },
       "balances": [
         {
+          "address": "celestia12rl5j5hre254frgdxxada5k34825haf5h3r2ep",
+          "coins": [
+            {
+              "denom": "utia",
+              "amount": "1000000000000000"
+            }
+          ]
+        },
+        {
           "address": "celestia1jcm4p464afm8fsgezd4jqm8vwdzn63a0tchqd3",
           "coins": [
             {
@@ -64,7 +80,7 @@
       "supply": [
         {
           "denom": "utia",
-          "amount": "1000000000000000"
+          "amount": "2000000000000000"
         }
       ],
       "denom_metadata": [

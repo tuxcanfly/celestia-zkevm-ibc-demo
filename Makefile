@@ -128,7 +128,7 @@ init-simapp:
 
 
 build-demo:
-	go build ./testing/demo/...
+	go build ./testing/demo
 .PHONY: build-demo
 
 
