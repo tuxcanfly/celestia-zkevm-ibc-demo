@@ -1,0 +1,3 @@
+[submodule "solidity-ibc-eureka"]
+	path = solidity-ibc-eureka
+	url = https://github.com/cosmos/solidity-ibc-eureka

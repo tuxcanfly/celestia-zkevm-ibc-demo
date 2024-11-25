@@ -139,6 +139,9 @@ run-demo:
 .PHONY: run-demo
 
 
-
+## deploy the IBC smart contracts
+deploy-contracts:
+	forge script ./solidity-ibc-eureka/scripts/E2ETestDeploy.s.sol:E2ETestDeploy --rpc-url http://localhost:8545 --private-key 0x82bfcfadbf1712f6550d8d2c00a39f05b33ec78939d0167be2a737d691f33a6a --broadcast
+.PHONY: deploy-contracts
 
 
