@@ -1,10 +1,10 @@
 services:
   beacond:
-    image: ghcr.io/rollkit/beacon-kit:v0.1.0
+    image: beacond:latest #ghcr.io/rollkit/beacon-kit:v0.1.0
     container_name: beacond
-    environment:
-      - TESTAPP_FILES_DIR=/beacon-kit/testing/files  # Add the actual path
-      - JWT_SECRET_PATH=${TESTAPP_FILES_DIR}/jwt.hex
+    # environment:
+    #   - TESTAPP_FILES_DIR=/beacon-kit/testing/files  # Add the actual path
+    #   - JWT_SECRET_PATH=${TESTAPP_FILES_DIR}/jwt.hex
     volumes:
       - ./testing/files:/beacon-kit/testing/files
       - ./.tmp:/beacon-kit/.tmp
