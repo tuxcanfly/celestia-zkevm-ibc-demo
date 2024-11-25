@@ -1,6 +1,6 @@
 services:
   beacond:
-    image: beacond:latest #ghcr.io/rollkit/beacon-kit:v0.1.0
+    image: ghcr.io/rollkit/beacon-kit:v0.1.3
     container_name: beacond
     # environment:
     #   - TESTAPP_FILES_DIR=/beacon-kit/testing/files  # Add the actual path
