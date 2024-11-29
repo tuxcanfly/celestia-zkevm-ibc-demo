@@ -7,21 +7,25 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/celestiaorg/celestia-zkevm-ibc-demo/simapp"
+	"cosmossdk.io/x/tx/signing"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	legacysigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 )
 
-func InitializeLightClient(ctx context.Context, simapp simapp.SimApp, trustHeight uint64) error {
+func InitializeLightClient() error {
+	fmt.Println("Initializing the groth16 light client")
 	// ETH SET UP
 	ethClient, err := ethclient.Dial("http://localhost:8545")
 	if err != nil {
@@ -29,12 +33,12 @@ func InitializeLightClient(ctx context.Context, simapp simapp.SimApp, trustHeigh
 	}
 
 	// retrieve the genesis block
-	genesisBlock, err := ethClient.BlockByNumber(ctx, big.NewInt(0))
+	genesisBlock, err := ethClient.BlockByNumber(context.Background(), big.NewInt(0))
 	if err != nil {
 		return fmt.Errorf("failed to get genesis block: %v", err)
 	}
 
-	latestBlock, err := ethClient.BlockByNumber(ctx, nil)
+	latestBlock, err := ethClient.BlockByNumber(context.Background(), nil)
 	if err != nil {
 		return fmt.Errorf("failed to get latest block: %v", err)
 	}
@@ -61,24 +65,39 @@ func InitializeLightClient(ctx context.Context, simapp simapp.SimApp, trustHeigh
 	}
 
 	// simapp address
-	clientCtx, err := SetupClientContext(&simapp)
+	clientCtx, err := SetupClientContext()
 	if err != nil {
 		return fmt.Errorf("failed to setup client context: %v", err)
 	}
 
-	BroadcastMessages(ctx, clientCtx, simapp, relayer, 200, msg)
+	BroadcastMessages(clientCtx, relayer, 200, msg)
 	return nil
 }
 
 // SetupClientContext initializes a Cosmos SDK ClientContext
-func SetupClientContext(simapp *simapp.SimApp) (client.Context, error) {
+func SetupClientContext() (client.Context, error) {
 	// Chain-specific configurations
-	chainID := simapp.ChainID()
+	chainID := "zkibc-demo"
 	nodeURI := "http://localhost:26657"       // RPC endpoint
 	homeDir := "../../files/simapp-validator" // Path to Cosmos configuration directory
+	appName := "celestia-zkevm-ibc-demo"      // Name of the application from the genesis file
+
+	// Initialise codec with the necessary registerers
+	interfaceRegistry, _ := cdctypes.NewInterfaceRegistryWithOptions(cdctypes.InterfaceRegistryOptions{
+		ProtoFiles: proto.HybridResolver,
+		SigningOptions: signing.Options{
+			AddressCodec: address.Bech32Codec{
+				Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
+			},
+			ValidatorAddressCodec: address.Bech32Codec{
+				Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
+			},
+		},
+	})
+	appCodec := codec.NewProtoCodec(interfaceRegistry)
 
 	// Keyring setup
-	kr, err := keyring.New(simapp.Name(), keyring.BackendTest, homeDir, nil, simapp.AppCodec())
+	kr, err := keyring.New(appName, keyring.BackendTest, homeDir, nil, appCodec)
 	if err != nil {
 		return client.Context{}, fmt.Errorf("failed to initialize keyring: %v", err)
 	}
@@ -98,7 +117,7 @@ func SetupClientContext(simapp *simapp.SimApp) (client.Context, error) {
 	clientCtx = clientCtx.WithClient(rpcClient)
 
 	// Set codec (you need to pass your own codec)
-	clientCtx = clientCtx.WithCodec(simapp.AppCodec())
+	clientCtx = clientCtx.WithCodec(appCodec)
 
 	// Set input/output for CLI commands (if applicable)
 	clientCtx = clientCtx.WithInput(nil).WithOutput(nil)
@@ -128,7 +147,7 @@ func defaultTxFactory(clientCtx client.Context, account client.Account) tx.Facto
 	return tx.Factory{}.
 		WithAccountNumber(account.GetAccountNumber()).
 		WithSequence(account.GetSequence()).
-		WithSignMode(signing.SignMode_SIGN_MODE_DIRECT).
+		WithSignMode(legacysigning.SignMode_SIGN_MODE_DIRECT).
 		WithGas(flags.DefaultGasLimit).
 		WithGasPrices("0.002").
 		WithMemo("interchaintest").
@@ -141,7 +160,7 @@ func defaultTxFactory(clientCtx client.Context, account client.Account) tx.Facto
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
 // Once the broadcast response is returned, we wait for two blocks to be created on chain.
-func BroadcastMessages(ctx context.Context, clientContext client.Context, simapp simapp.SimApp, user string, gas uint64, msgs ...interface {
+func BroadcastMessages(clientContext client.Context, user string, gas uint64, msgs ...interface {
 	ProtoMessage()
 	Reset()
 	String() string
@@ -168,7 +187,7 @@ func BroadcastMessages(ctx context.Context, clientContext client.Context, simapp
 		return &sdk.TxResponse{}, err
 	}
 
-	if buffer == nil || buffer.Len() == 0 {
+	if buffer.Len() == 0 {
 		return nil, fmt.Errorf("empty buffer, transaction has not been executed yet")
 	}
 
