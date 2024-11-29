@@ -33,7 +33,7 @@ func NewClientState(
 ) *ClientState {
 	return &ClientState{
 		LatestHeight:               latestHeight,
-		StateTransitionVerifierKey: stateTransitionVerifierKey,
+		// StateTransitionVerifierKey: stateTransitionVerifierKey,
 		CodeCommitment:             codeCommitment,
 		GenesisStateRoot:           genesisStateRoot,
 	}
@@ -63,9 +63,9 @@ func (cs ClientState) status(
 
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
-	if cs.StateTransitionVerifierKey == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "state transition verifier key is nil")
-	}
+	// if cs.StateTransitionVerifierKey == nil {
+	// 	return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "state transition verifier key is nil")
+	// }
 	return nil
 }
 
