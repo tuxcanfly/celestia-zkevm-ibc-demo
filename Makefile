@@ -94,7 +94,6 @@ lint:
 	@markdownlint --config .markdownlint.yaml '**/*.md'
 	@echo "--> Running hadolint"
 	@hadolint docker/Dockerfile
-	@hadolint docker/txsim/Dockerfile
 	@echo "--> Running yamllint"
 	@yamllint --no-warnings . -c .yamllint.yml
 .PHONY: lint
@@ -146,5 +145,3 @@ deploy-contracts:
 	@cd ./solidity-ibc-eureka/scripts && bun install
 	@cd ./solidity-ibc-eureka/scripts && forge script E2ETestDeploy.s.sol:E2ETestDeploy --rpc-url http://localhost:8545 --private-key 0x82bfcfadbf1712f6550d8d2c00a39f05b33ec78939d0167be2a737d691f33a6a --broadcast
 .PHONY: deploy-contracts
-
-
