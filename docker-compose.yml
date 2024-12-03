@@ -87,6 +87,7 @@ services:
       - ./testing/files/simapp-validator:/testapp_files
     entrypoint: /testapp_files/entrypoint.sh
     ports:
+      - "9190:9090"
       - "5123:26657"
     networks:
       - beacon-network
