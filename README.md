@@ -35,6 +35,7 @@ make deploy-contracts
 make build-demo
 
 # Run the demo binary
+# NOTE: this currently doesn't work
 make run-demo
 ```
 
