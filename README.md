@@ -30,6 +30,12 @@ docker compose up --detach
 
 # Deploy smart contracts on the EVM roll-up
 make deploy-contracts
+
+# Build the demo binary
+make build-demo
+
+# Run the demo binary
+make run-demo
 ```
 
 While deploying contracts, if you hit an error like: `[Revert] vm.envString: environment variable "E2E_FAUCET_ADDRESS" not found` then comment out the lines that use that environment variable from `./solidity-ibc-eureka/E2ETestDeploy.s.sol`.
