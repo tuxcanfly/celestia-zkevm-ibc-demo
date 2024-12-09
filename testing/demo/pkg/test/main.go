@@ -27,8 +27,8 @@ func DeployContracts() error {
 
 	// print contract addresses from broadcast run-latest.json
 	filePath := "./solidity-ibc-eureka/broadcast/E2ETestDeploy.s.sol/80087/run-latest.json"
-	// Read the JSON file
 
+	// Read the JSON file
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
@@ -66,15 +66,5 @@ func DeployContracts() error {
 		}
 	}
 
-	// 
-
-
 	return nil
 }
-
-// func main() {
-
-	// if err := DeployContracts(); err != nil {
-		// fmt.Println(err)
-	// }
-// }

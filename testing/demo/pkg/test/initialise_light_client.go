@@ -88,17 +88,6 @@ func InitializeLightClient() error {
 		Signer:           relayer,
 	})
 
-	// establish transfer channel for tendrmint client on evm chain
-	// evmMerklePathPrefix := commitmenttypesv2.NewMerklePath([]byte("evm"))
-	// counterpartyInfo := ics02client.IICS02ClientMsgsCounterpartyInfo{
-	// 	ClientId:     "channel-0",
-	// 	MerklePrefix: [][]byte{[]byte(ibcexported.StoreKey), []byte("")},
-	// }
-	// // save contract addresses during deployment and pass it here
-	// lightClientAddress := ethcommon.HexToAddress("tendermint light client contract address")
-
-	// establish transfer channel for groth16 client on evm chain
-
 	return nil
 }
 
@@ -112,7 +101,7 @@ func SetupClientContext() (client.Context, error) {
 
 	// Chain-specific configurations
 	chainID := "zkibc-demo"
-	// nodeURI := "http://localhost:5123"                                     // RPC endpoint
+	cometNodeURI := "http://localhost:5123"                                  // Comet RPC endpoint
 	appName := "celestia-zkevm-ibc-demo"                                   // Name of the application from the genesis file
 	grpcAddr := "localhost:9190"                                           // gRPC endpoint
 	homeDir := filepath.Join(home, "testing", "files", "simapp-validator") // Path to the keyring directory
@@ -174,10 +163,7 @@ func SetupClientContext() (client.Context, error) {
 		return client.Context{}, fmt.Errorf("failed to create tx config: %v", err)
 	}
 
-	// set up tendermint rpc
-	CometRPC := "http://localhost:5123"
-
-	cometNode, err := client.NewClientFromNode(CometRPC)
+	cometNode, err := client.NewClientFromNode(cometNodeURI)
 	if err != nil {
 		return client.Context{}, err
 	}
@@ -271,9 +257,7 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 	}
 
 	fmt.Println(txResp.Code, "TX RESPONSE")
-	fmt.Println(txResp.Logs, "TX LOGS")
 	fmt.Println(txResp.RawLog, "TX RAW LOG")
-
 	return &txResp, nil
 }
 
