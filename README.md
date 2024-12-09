@@ -11,8 +11,8 @@ For more information refer to the [architecture document](./ARCHITECTURE.md). No
 
 ## Contributing
 
-1. Install the [requirements](https://github.com/cosmos/solidity-ibc-eureka?tab=readme-ov-file#requirements) listed in the solidity-ibc-eureka README
-    1. After you `cp .env.example .env` you will need to set the `PRIVATE_KEY`. You can create a new account in Metamask and export the private key to use there.
+1. Complete the solidity-ibc-eureka [requirements](https://github.com/cosmos/solidity-ibc-eureka?tab=readme-ov-file#requirements)
+    1. After you `cp .env.example .env` you will need to set the `PRIVATE_KEY`. You can create a new account in Metamask and export the private key to use.
 1. Install [Docker](https://docs.docker.com/get-docker/)
 1. Fork this repo and clone it
 1. Set up the git submodule for solidity-ibc-eureka via:
