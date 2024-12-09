@@ -12,6 +12,7 @@ For more information refer to the [architecture document](./ARCHITECTURE.md). No
 ## Contributing
 
 1. Install the [requirements](https://github.com/cosmos/solidity-ibc-eureka?tab=readme-ov-file#requirements) listed in the solidity-ibc-eureka README
+    1. After you `cp .env.example .env` you will need to set the `PRIVATE_KEY`. You can create a new account in Metamask and export the private key to use there.
 1. Install [Docker](https://docs.docker.com/get-docker/)
 1. Fork this repo and clone it
 1. Set up the git submodule for solidity-ibc-eureka via:
@@ -19,13 +20,9 @@ For more information refer to the [architecture document](./ARCHITECTURE.md). No
     ```shell
     git submodule init
     git submodule update
-
-    # TODO: remove this fetch and checkout after https://github.com/celestiaorg/celestia-zkevm-ibc-demo/issues/17 is resolved
-    git fetch --all
-    git checkout d952d312065f9c3689a9f3100dc98cc0c86c2f77
     ```
 
-## Local Development
+### Local development
 
 ```shell
 # Start a local development environment by running
@@ -33,4 +30,21 @@ docker compose up --detach
 
 # Deploy smart contracts on the EVM roll-up
 make deploy-contracts
+```
+
+> TIP
+> If you hit an error like: `[Revert] vm.envString: environment variable "E2E_FAUCET_ADDRESS" not found` then comment out the lines that use it from `./solidity-ibc-eureka/E2ETestDeploy.s.sol`
+
+### Helpful commands
+
+```shell
+# See the running contains
+docker ps
+
+# You can view the logs from a running container via Docker UI or:
+docker logs beacond
+docker logs celestia-network-bridge
+docker logs celestia-network-validator
+docker logs simapp-validator
+docker logs reth
 ```
