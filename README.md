@@ -32,8 +32,7 @@ docker compose up --detach
 make deploy-contracts
 ```
 
-> TIP
-> If you hit an error like: `[Revert] vm.envString: environment variable "E2E_FAUCET_ADDRESS" not found` then comment out the lines that use it from `./solidity-ibc-eureka/E2ETestDeploy.s.sol`
+While deploying contracts, if you hit an error like: `[Revert] vm.envString: environment variable "E2E_FAUCET_ADDRESS" not found` then comment out the lines that use that environment variable from `./solidity-ibc-eureka/E2ETestDeploy.s.sol`.
 
 ### Helpful commands
 
