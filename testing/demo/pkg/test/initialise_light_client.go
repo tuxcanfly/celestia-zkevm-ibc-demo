@@ -3,8 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
-	"cosmossdk.io/x/tx/signing"
 	"fmt"
+	"math/big"
+	"os"
+	"path/filepath"
+	"time"
+
+	"cosmossdk.io/x/tx/signing"
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -26,10 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"math/big"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 func InitializeLightClient() error {
@@ -101,7 +102,7 @@ func SetupClientContext() (client.Context, error) {
 
 	// Chain-specific configurations
 	chainID := "zkibc-demo"
-	cometNodeURI := "http://localhost:5123"                                  // Comet RPC endpoint
+	cometNodeURI := "http://localhost:5123"                                // Comet RPC endpoint
 	appName := "celestia-zkevm-ibc-demo"                                   // Name of the application from the genesis file
 	grpcAddr := "localhost:9190"                                           // gRPC endpoint
 	homeDir := filepath.Join(home, "testing", "files", "simapp-validator") // Path to the keyring directory
@@ -264,10 +265,4 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 type User interface {
 	KeyName() string
 	FormattedAddress() string
-}
-
-func main() {
-	if err := InitializeLightClient(); err != nil {
-		fmt.Println(err)
-	}
 }
