@@ -1,13 +1,16 @@
-package pkg
+package main
 
 import (
 	"bytes"
 	"context"
 	"fmt"
 	"math/big"
+	"os"
+	"path/filepath"
 	"time"
 
 	"cosmossdk.io/x/tx/signing"
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -15,13 +18,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	legacysigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/ethereum/go-ethereum/ethclient"
-
-	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func InitializeLightClient() error {
@@ -56,8 +65,7 @@ func InitializeLightClient() error {
 	}
 
 	// relayer address registered in simapp
-	relayer := "cosmos16p2hfunj38hucvlzx4fp4dj42y6gddcxj60yxn"
-
+	relayer := "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q"
 	msg := &clienttypes.MsgCreateClient{
 		ClientState:    clientStateAny,
 		ConsensusState: consensusStateAny,
@@ -70,20 +78,34 @@ func InitializeLightClient() error {
 		return fmt.Errorf("failed to setup client context: %v", err)
 	}
 
-	_, err = BroadcastMessages(clientCtx, relayer, 200, msg)
-	if err != nil {
-		return fmt.Errorf("failed to broadcast message: %v", err)
-	}
+	// broadcast the initial client creation message
+	BroadcastMessages(clientCtx, relayer, 200, msg)
+
+	// establish transfer channel for groth16 client on simapp
+	cosmosMerklePathPrefix := commitmenttypesv2.NewMerklePath([]byte("simd"))
+	BroadcastMessages(clientCtx, relayer, 200_000, &channeltypesv2.MsgCreateChannel{
+		ClientId:         groth16.ModuleName,
+		MerklePathPrefix: cosmosMerklePathPrefix,
+		Signer:           relayer,
+	})
+
 	return nil
 }
 
 // SetupClientContext initializes a Cosmos SDK ClientContext
 func SetupClientContext() (client.Context, error) {
+	// Get the user's home directory
+	home, err := os.Getwd()
+	if err != nil {
+		return client.Context{}, fmt.Errorf("failed to initialize keyring: %v", err)
+	}
+
 	// Chain-specific configurations
 	chainID := "zkibc-demo"
-	nodeURI := "http://localhost:26657"       // RPC endpoint
-	homeDir := "../../files/simapp-validator" // Path to Cosmos configuration directory
-	appName := "celestia-zkevm-ibc-demo"      // Name of the application from the genesis file
+	cometNodeURI := "http://localhost:5123"                                // Comet RPC endpoint
+	appName := "celestia-zkevm-ibc-demo"                                   // Name of the application from the genesis file
+	grpcAddr := "localhost:9190"                                           // gRPC endpoint
+	homeDir := filepath.Join(home, "testing", "files", "simapp-validator") // Path to the keyring directory
 
 	// Initialise codec with the necessary registerers
 	interfaceRegistry, _ := cdctypes.NewInterfaceRegistryWithOptions(cdctypes.InterfaceRegistryOptions{
@@ -97,6 +119,9 @@ func SetupClientContext() (client.Context, error) {
 			},
 		},
 	})
+	std.RegisterInterfaces(interfaceRegistry)
+	// Register Account interface
+	authtypes.RegisterInterfaces(interfaceRegistry)
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 
 	// Keyring setup
@@ -105,25 +130,61 @@ func SetupClientContext() (client.Context, error) {
 		return client.Context{}, fmt.Errorf("failed to initialize keyring: %v", err)
 	}
 
+	rec, err := kr.List()
+	if err != nil {
+		fmt.Println(err, "keyring list error")
+	}
+	addr, err := rec[0].GetAddress()
+	if err != nil {
+		fmt.Println(err, "keyring address error")
+	}
+
+	for _, r := range rec {
+		add, _ := r.GetAddress()
+		fmt.Println(r.Name, "record name", add.String(), "record address")
+		fmt.Println(add, "ADDRESS")
+	}
+
+	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return client.Context{}, fmt.Errorf("failed to create gRPC connection: %v", err)
+	}
+
+	if err != nil {
+		return client.Context{}, fmt.Errorf("failed to create tendermint client: %v", err)
+	}
+
+	txConfigOpts := authtx.ConfigOptions{
+		EnabledSignModes:           append(authtx.DefaultSignModes, legacysigning.SignMode_SIGN_MODE_TEXTUAL),
+		TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(conn),
+	}
+
+	txConfig, err := authtx.NewTxConfigWithOptions(appCodec, txConfigOpts)
+	if err != nil {
+		return client.Context{}, fmt.Errorf("failed to create tx config: %v", err)
+	}
+
+	cometNode, err := client.NewClientFromNode(cometNodeURI)
+	if err != nil {
+		return client.Context{}, err
+	}
+
 	// Initialize ClientContext
 	clientCtx := client.Context{}.
 		WithChainID(chainID).
 		WithKeyring(kr).
-		WithNodeURI(nodeURI).
-		WithHomeDir(homeDir)
-
-	// Create a Tendermint RPC client and set it in ClientContext
-	rpcClient, err := client.NewClientFromNode(nodeURI)
-	if err != nil {
-		return client.Context{}, fmt.Errorf("failed to create RPC client: %v", err)
-	}
-	clientCtx = clientCtx.WithClient(rpcClient)
-
-	// Set codec (you need to pass your own codec)
-	clientCtx = clientCtx.WithCodec(appCodec)
-
-	// Set input/output for CLI commands (if applicable)
-	clientCtx = clientCtx.WithInput(nil).WithOutput(nil)
+		WithHomeDir(homeDir).
+		WithGRPCClient(conn).
+		WithFromAddress(addr).
+		WithFromName(rec[0].Name).
+		WithSkipConfirmation(true).
+		WithInterfaceRegistry(interfaceRegistry).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
+		WithKeyring(kr).
+		WithTxConfig(txConfig).
+		WithBroadcastMode("sync").
+		WithClient(cometNode).
+		WithCodec(appCodec)
 
 	return clientCtx, nil
 }
@@ -147,12 +208,13 @@ func GetFactory(clientContext client.Context, user string, factoryOptions tx.Fac
 
 // defaultTxFactory creates a new Factory with default configuration.
 func defaultTxFactory(clientCtx client.Context, account client.Account) tx.Factory {
+	fmt.Println(clientCtx.TxConfig, "TX CONFIG CLIENTCTX")
 	return tx.Factory{}.
 		WithAccountNumber(account.GetAccountNumber()).
 		WithSequence(account.GetSequence()).
 		WithSignMode(legacysigning.SignMode_SIGN_MODE_DIRECT).
 		WithGas(flags.DefaultGasLimit).
-		WithGasPrices("0.002").
+		WithGasPrices("0.0001stake").
 		WithMemo("interchaintest").
 		WithTxConfig(clientCtx.TxConfig).
 		WithAccountRetriever(clientCtx.AccountRetriever).
@@ -168,12 +230,6 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 	Reset()
 	String() string
 }) (*sdk.TxResponse, error) {
-	// sdk.GetConfig().SetBech32PrefixForAccount(chain.Config().Bech32Prefix, chain.Config().Bech32Prefix+sdk.PrefixPublic)
-	// sdk.GetConfig().SetBech32PrefixForValidator(
-	// 	chain.Config().Bech32Prefix+sdk.PrefixValidator+sdk.PrefixOperator,
-	// 	chain.Config().Bech32Prefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic,
-	// )
-
 	// Create a tx.Factory instance and apply the factoryOptions function
 	factory := tx.Factory{}
 	factoryOptions := factory.WithGas(gas)
@@ -185,7 +241,9 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 
 	buffer := &bytes.Buffer{}
 	clientContext.Output = buffer
+	clientContext.WithOutput(buffer)
 
+	fmt.Println("BEFORE BROADCASTING TX")
 	if err := tx.BroadcastTx(clientContext, f, msgs...); err != nil {
 		return &sdk.TxResponse{}, err
 	}
@@ -193,17 +251,24 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 	if buffer.Len() == 0 {
 		return nil, fmt.Errorf("empty buffer, transaction has not been executed yet")
 	}
-
 	// unmarshall buffer into txresponse
 	var txResp sdk.TxResponse
 	if err := clientContext.Codec.UnmarshalJSON(buffer.Bytes(), &txResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal tx response: %v", err)
 	}
 
+	fmt.Println(txResp.Code, "TX RESPONSE")
+	fmt.Println(txResp.RawLog, "TX RAW LOG")
 	return &txResp, nil
 }
 
 type User interface {
 	KeyName() string
 	FormattedAddress() string
+}
+
+func main() {
+	if err := InitializeLightClient(); err != nil {
+		fmt.Println(err)
+	}
 }

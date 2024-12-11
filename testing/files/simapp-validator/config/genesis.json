@@ -24,6 +24,13 @@
           "pub_key": null,
           "account_number": "0",
           "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q",
+          "pub_key": null,
+          "account_number": "1",
+          "sequence": "0"
         }
       ]
     },
@@ -44,12 +51,21 @@
               "amount": "1000000000000"
             }
           ]
+        },
+        {
+          "address": "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q",
+          "coins": [
+            {
+              "denom": "stake",
+              "amount": "274883996352"
+            }
+          ]
         }
       ],
       "supply": [
         {
           "denom": "stake",
-          "amount": "1000000000000"
+          "amount": "1274883996352"
         }
       ],
       "denom_metadata": [],
