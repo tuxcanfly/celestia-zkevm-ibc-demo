@@ -11,8 +11,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: /beacon-kit/testing/files/entrypoint.sh
     depends_on:
-      - celestia-network-bridge
-      - reth
+      celestia-network-validator:
+        condition: service_healthy
+      celestia-network-bridge:
+        condition: service_started
+      reth:
+        condition: service_started
     networks:
       - beacon-network
 
