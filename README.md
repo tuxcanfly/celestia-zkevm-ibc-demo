@@ -12,7 +12,7 @@ For more information refer to the [architecture document](./ARCHITECTURE.md). No
 ## Contributing
 
 1. Complete the solidity-ibc-eureka [requirements](https://github.com/cosmos/solidity-ibc-eureka?tab=readme-ov-file#requirements)
-    1. After you `cp .env.example .env` you will need to set the `PRIVATE_KEY`. You can create a new account in Metamask and export the private key to use.
+    1. After you `cp .env.example .env` you will need to set the `PRIVATE_KEY=0x82bfcfadbf1712f6550d8d2c00a39f05b33ec78939d0167be2a737d691f33a6a`
 1. Install [Docker](https://docs.docker.com/get-docker/)
 1. Fork this repo and clone it
 1. Set up the git submodule for solidity-ibc-eureka via:
@@ -35,8 +35,7 @@ make deploy-contracts
 make build-demo
 
 # Run the demo binary
-# NOTE: this currently doesn't work
-make run-demo
+make run-demo # NOTE: this currently doesn't work
 ```
 
 While deploying contracts, if you hit an error like: `[Revert] vm.envString: environment variable "E2E_FAUCET_ADDRESS" not found` then comment out the lines that use that environment variable from `./solidity-ibc-eureka/E2ETestDeploy.s.sol`.
