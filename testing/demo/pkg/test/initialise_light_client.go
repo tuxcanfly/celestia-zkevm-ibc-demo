@@ -79,15 +79,21 @@ func InitializeLightClient() error {
 	}
 
 	// broadcast the initial client creation message
-	BroadcastMessages(clientCtx, relayer, 200, msg)
+	_, err = BroadcastMessages(clientCtx, relayer, 200, msg)
+	if err != nil {
+		return err
+	}
 
 	// establish transfer channel for groth16 client on simapp
 	cosmosMerklePathPrefix := commitmenttypesv2.NewMerklePath([]byte("simd"))
-	BroadcastMessages(clientCtx, relayer, 200_000, &channeltypesv2.MsgCreateChannel{
+	_, err = BroadcastMessages(clientCtx, relayer, 200_000, &channeltypesv2.MsgCreateChannel{
 		ClientId:         groth16.ModuleName,
 		MerklePathPrefix: cosmosMerklePathPrefix,
 		Signer:           relayer,
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -265,10 +271,4 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 type User interface {
 	KeyName() string
 	FormattedAddress() string
-}
-
-func main() {
-	if err := InitializeLightClient(); err != nil {
-		fmt.Println(err)
-	}
 }

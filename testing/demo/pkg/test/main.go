@@ -5,6 +5,12 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/solidity-ibc-eureka/abigen/icscore"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -12,11 +18,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"math/big"
-	"os"
-	"os/exec"
-	"strings"
-	"time"
 )
 
 const channelId = "channel-0"
@@ -65,7 +66,7 @@ func DeployContracts() error {
 	// Parse JSON into a map
 	var runLatest map[string]interface{}
 	if err := json.Unmarshal(file, &runLatest); err != nil {
-		fmt.Errorf("Error unmarshalling JSON: %v", err)
+		return fmt.Errorf("Error unmarshalling JSON: %w", err)
 	}
 
 	// Extract and print the contract addresses
@@ -89,7 +90,7 @@ func DeployContracts() error {
 
 	var addresses ContractAddresses
 	if err := json.Unmarshal([]byte(unescapedValue), &addresses); err != nil {
-		return fmt.Errorf("error unmarshalling contract addresses:", err)
+		return fmt.Errorf("error unmarshalling contract addresses: %w", err)
 	}
 
 	fmt.Println("Contract Addresses:", addresses)
@@ -230,5 +231,8 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+	if err := InitializeLightClient(); err != nil {
+		fmt.Println(err)
 	}
 }
