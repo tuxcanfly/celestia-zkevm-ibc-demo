@@ -26,8 +26,10 @@ import (
 	"github.com/ethereum/go-ethereum/triedb/database"
 )
 
-// testReader implements database.Reader interface, providing function to
-// access trie nodes.
+// testReader implements the database.StateReader interface. It provides a
+// function to access trie nodes.
+var _ database.NodeReader = (*testReader)(nil)
+
 type testReader struct {
 	db     ethdb.Database
 	scheme string
@@ -55,7 +57,9 @@ func (r *testReader) Node(owner common.Hash, path []byte, hash common.Hash) ([]b
 	return rawdb.ReadTrieNode(r.db, owner, path, hash, r.scheme), nil
 }
 
-// testDb implements database.Database interface, using for testing purpose.
+// testDb implements the database.NodeDatabase interface. Use for testing purpose.
+var _ database.NodeDatabase = (*testDb)(nil)
+
 type testDb struct {
 	disk    ethdb.Database
 	root    common.Hash
@@ -74,7 +78,7 @@ func newTestDatabase(diskdb ethdb.Database, scheme string) *testDb {
 	}
 }
 
-func (db *testDb) Reader(stateRoot common.Hash) (database.Reader, error) {
+func (db *testDb) NodeReader(stateRoot common.Hash) (database.NodeReader, error) {
 	nodes, _ := db.dirties(stateRoot, true)
 	return &testReader{db: db.disk, scheme: db.scheme, nodes: nodes}, nil
 }
