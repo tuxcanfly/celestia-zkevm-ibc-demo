@@ -293,7 +293,7 @@ type User interface {
 // has been included in a block.
 func getFullyPopulatedResponse(cc client.Context, txHash string) (*sdk.TxResponse, error) {
 	var resp sdk.TxResponse
-	err := WaitForCondition1(time.Second*60, time.Second*5, func() (bool, error) {
+	err := WaitForCondition(time.Second*60, time.Second*5, func() (bool, error) {
 		fullyPopulatedTxResp, err := authtx.QueryTx(cc, txHash)
 		if err != nil {
 			return false, err
@@ -325,30 +325,6 @@ func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAtt
 		return abci.EventAttribute{}, false
 	}
 	return attributes[idx], true
-}
-
-// WaitForCondition periodically executes the given function fn based on the provided pollingInterval.
-// The function fn should return true of the desired condition is met. If the function never returns true within the timeoutAfter
-// period, or fn returns an error, the condition will not have been met.
-func WaitForCondition1(timeoutAfter, pollingInterval time.Duration, fn func() (bool, error)) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("failed waiting for condition after %f seconds", timeoutAfter.Seconds())
-		case <-time.After(pollingInterval):
-			reachedCondition, err := fn()
-			if err != nil {
-				return fmt.Errorf("error occurred while waiting for condition: %s", err)
-			}
-
-			if reachedCondition {
-				return nil
-			}
-		}
-	}
 }
 
 // func main() {
