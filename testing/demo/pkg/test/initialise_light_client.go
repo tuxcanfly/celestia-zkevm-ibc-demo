@@ -3,14 +3,17 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"cosmossdk.io/x/tx/signing"
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -26,12 +29,18 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+// relayer address registered in simapp
+const Relayer = "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q"
+
+var Groth16ClientId string
 
 func InitializeLightClient() error {
 	fmt.Println("Initializing the groth16 light client")
@@ -64,35 +73,50 @@ func InitializeLightClient() error {
 		return fmt.Errorf("failed to create consensus state any: %v", err)
 	}
 
-	// relayer address registered in simapp
-	relayer := "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q"
-	msg := &clienttypes.MsgCreateClient{
-		ClientState:    clientStateAny,
-		ConsensusState: consensusStateAny,
-		Signer:         relayer,
-	}
-
 	// simapp address
 	clientCtx, err := SetupClientContext()
 	if err != nil {
 		return fmt.Errorf("failed to setup client context: %v", err)
 	}
 
+	createClientMsg := &clienttypes.MsgCreateClient{
+		ClientState:    clientStateAny,
+		ConsensusState: consensusStateAny,
+		Signer:         Relayer,
+	}
+
+	if clientState.ClientType() != consensusState.ClientType() {
+		fmt.Println("Client and consensus state client types do not match")
+	}
+
 	// broadcast the initial client creation message
-	_, err = BroadcastMessages(clientCtx, relayer, 200, msg)
+	createClientMsgResponse, err := BroadcastMessages(clientCtx, Relayer, 200_000, createClientMsg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to broadcast the initial client creation message: %v", err)
+	}
+
+	if createClientMsgResponse.Code != 0 {
+		return fmt.Errorf("failed to create client: %v", createClientMsgResponse.RawLog)
+	}
+
+	// parse the client id from the events
+	Groth16ClientId, err := ParseClientIDFromEvents(createClientMsgResponse.Events)
+	if err != nil {
+		return fmt.Errorf("failed to parse client id from events: %v", err)
 	}
 
 	// establish transfer channel for groth16 client on simapp
 	cosmosMerklePathPrefix := commitmenttypesv2.NewMerklePath([]byte("simd"))
-	_, err = BroadcastMessages(clientCtx, relayer, 200_000, &channeltypesv2.MsgCreateChannel{
-		ClientId:         groth16.ModuleName,
+	msgCreateChannelResp, err := BroadcastMessages(clientCtx, Relayer, 200_000, &channeltypesv2.MsgCreateChannel{
+		ClientId:         Groth16ClientId,
 		MerklePathPrefix: cosmosMerklePathPrefix,
-		Signer:           relayer,
+		Signer:           Relayer,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create channel: %v", err)
+	}
+	if msgCreateChannelResp.Code != 0 {
+		return fmt.Errorf("failed to create channel: %v", msgCreateChannelResp.RawLog)
 	}
 
 	return nil
@@ -126,8 +150,10 @@ func SetupClientContext() (client.Context, error) {
 		},
 	})
 	std.RegisterInterfaces(interfaceRegistry)
-	// Register Account interface
 	authtypes.RegisterInterfaces(interfaceRegistry)
+	clienttypes.RegisterInterfaces(interfaceRegistry)
+	groth16.RegisterInterfaces(interfaceRegistry)
+	channeltypesv2.RegisterInterfaces(interfaceRegistry)
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 
 	// Keyring setup
@@ -143,12 +169,6 @@ func SetupClientContext() (client.Context, error) {
 	addr, err := rec[0].GetAddress()
 	if err != nil {
 		fmt.Println(err, "keyring address error")
-	}
-
-	for _, r := range rec {
-		add, _ := r.GetAddress()
-		fmt.Println(r.Name, "record name", add.String(), "record address")
-		fmt.Println(add, "ADDRESS")
 	}
 
 	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -214,7 +234,6 @@ func GetFactory(clientContext client.Context, user string, factoryOptions tx.Fac
 
 // defaultTxFactory creates a new Factory with default configuration.
 func defaultTxFactory(clientCtx client.Context, account client.Account) tx.Factory {
-	fmt.Println(clientCtx.TxConfig, "TX CONFIG CLIENTCTX")
 	return tx.Factory{}.
 		WithAccountNumber(account.GetAccountNumber()).
 		WithSequence(account.GetSequence()).
@@ -249,7 +268,6 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 	clientContext.Output = buffer
 	clientContext.WithOutput(buffer)
 
-	fmt.Println("BEFORE BROADCASTING TX")
 	if err := tx.BroadcastTx(clientContext, f, msgs...); err != nil {
 		return &sdk.TxResponse{}, err
 	}
@@ -262,13 +280,55 @@ func BroadcastMessages(clientContext client.Context, user string, gas uint64, ms
 	if err := clientContext.Codec.UnmarshalJSON(buffer.Bytes(), &txResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal tx response: %v", err)
 	}
-
-	fmt.Println(txResp.Code, "TX RESPONSE")
-	fmt.Println(txResp.RawLog, "TX RAW LOG")
-	return &txResp, nil
+	return getFullyPopulatedResponse(clientContext, txResp.TxHash)
 }
 
 type User interface {
 	KeyName() string
 	FormattedAddress() string
 }
+
+// getFullyPopulatedResponse returns a fully populated sdk.TxResponse.
+// the QueryTx function is periodically called until a tx with the given hash
+// has been included in a block.
+func getFullyPopulatedResponse(cc client.Context, txHash string) (*sdk.TxResponse, error) {
+	var resp sdk.TxResponse
+	err := WaitForCondition(time.Second*60, time.Second*5, func() (bool, error) {
+		fullyPopulatedTxResp, err := authtx.QueryTx(cc, txHash)
+		if err != nil {
+			return false, err
+		}
+
+		resp = *fullyPopulatedTxResp
+		return true, nil
+	})
+	return &resp, err
+}
+
+// ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
+// client identifier.
+func ParseClientIDFromEvents(events []abci.Event) (string, error) {
+	for _, ev := range events {
+		if ev.Type == clienttypes.EventTypeCreateClient {
+			if attribute, found := attributeByKey(ev.Attributes, clienttypes.AttributeKeyClientID); found {
+				return attribute.Value, nil
+			}
+		}
+	}
+	return "", errors.New("client identifier event attribute not found")
+}
+
+// attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
+func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAttribute, bool) {
+	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
+	if idx == -1 {
+		return abci.EventAttribute{}, false
+	}
+	return attributes[idx], true
+}
+
+// func main() {
+// 	if err := InitializeLightClient(); err != nil {
+// 		fmt.Println(err)
+// 	}
+// }
