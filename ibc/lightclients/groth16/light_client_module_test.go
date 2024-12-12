@@ -10,7 +10,10 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
+	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -221,6 +224,70 @@ func (suite *Groth16TestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
 			lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
 	)
+}
+
+func (suite *Groth16TestSuite) TestVerifyMembership() {
+	suite.T().Skip("Skipping TestVerifyMembership")
+	suite.SetupTest() // reset
+	testingpath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	// suite.chainB.QueryProof(host.FullConsensusStateKey(testingpath.EndpointB.ClientID, testingpath.EndpointB.GetClientLatestHeight()))
+	testingpath.SetChannelOrdered()
+	testingpath.Setup()
+
+	// suite.chainA.NewEndpoint(testingpath.EndpointA.ClientID, testingpath.EndpointA.ConnectionID, testingpath.EndpointA.ChannelID)
+
+	// endpointB := ibctesting.NewEndpoint(suite.chainB, NewGrtoth16Config(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	// endpointA := ibctesting.NewEndpoint(suite.chainA,  NewGrtoth16Config(), testingpath.EndpointA.ChannelID)
+
+	latestHeight := testingpath.EndpointB.GetClientLatestHeight()
+	key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, latestHeight)
+	merklePath := commitmenttypes.NewMerklePath(key)
+	// path, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+	// suite.Require().NoError(err)
+
+	// extract the key from the merkle path to convert it to a MPT key
+	mptKey := merklePath.KeyPath[0]
+
+	// let's create a random trie of 50 nodes
+	trie, _ := mpt.RandomTrie(50)
+	val := []byte("value")
+	trie.MustUpdate(mptKey, val)
+
+	// get the proof for the key
+	proof := mpt.ProofList{}
+	trie.Prove(mptKey, &proof)
+
+	proofBytes, err := mpt.ProofListToBytes(proof)
+	suite.Require().NoError(err)
+
+	// verify the proof
+	fmt.Println("clientID: ", testingpath.EndpointA.ClientID)
+
+	// lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+	// suite.Require().NoError(err)
+	// set up the groth16 light client module
+	zkClientModule := groth16.NewLightClientModule(suite.chainA.Codec, suite.chainA.App.GetIBCKeeper().ClientKeeper.GetStoreProvider())
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.AddRoute(groth16.SubModuleName, zkClientModule)
+
+	// lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), groth16.SubModuleName)
+	// require.NoError(suite.T(), err)
+
+	fmt.Println(testingpath.EndpointA.ClientID, "ClientID")
+
+	// set consensus state to the trie root
+	consensusState := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
+	root := types.NewMerkleRoot(trie.Hash().Bytes())
+	newConsState := ibctm.ConsensusState{
+		Timestamp: consensusState.Timestamp,
+		Root:      root,
+	}
+	testingpath.EndpointB.SetConsensusState(&newConsState, latestHeight)
+
+	err = zkClientModule.VerifyMembership(
+		suite.chainA.GetContext(), testingpath.EndpointA.ClientID, latestHeight, 1, 1,
+		proofBytes, merklePath, val,
+	)
+	suite.Require().NoError(err)
 }
 
 func (suite *Groth16TestSuite) TestStatus() {
