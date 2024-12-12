@@ -5,6 +5,14 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+
+	"math/big"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/solidity-ibc-eureka/abigen/icscore"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -12,14 +20,14 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"math/big"
-	"os"
-	"os/exec"
-	"strings"
-	"time"
 )
 
-const channelId = "channel-0"
+const (
+	channelId    = "channel-0"
+	firtClientID = "07-tendermint-0"
+)
+
+var TendermintLightClientID string
 
 type ContractAddresses struct {
 	ERC20           string `json:"erc20"`
@@ -134,10 +142,36 @@ func DeployContracts() error {
 
 	if event.Channel.CounterpartyId == channelId {
 		fmt.Println("counterparty channel added successfully")
+	} else {
+		return fmt.Errorf("counterparty channel not set properly on reth node")
 	}
 
-	if event.ChannelId == ibcexported.Tendermint {
+	if event.ChannelId == firtClientID {
 		fmt.Println("channel added successfully")
+	} else {
+		return fmt.Errorf("channel not set properly on reth node")
+	}
+	TendermintLightClientID = event.ChannelId
+
+	// Now that reth contracts are deployed and evm channel is created, we can create counterparty on simapp
+	fmt.Println("Creating counterparty on simapp...")
+
+	clientCtx, err := SetupClientContext()
+	if err != nil {
+		return fmt.Errorf("failed to setup client context: %v", err)
+	}
+
+	registerCounterPartyResp, err := BroadcastMessages(clientCtx, Relayer, 200_000, &channeltypesv2.MsgRegisterCounterparty{
+		ChannelId:             channelId,
+		CounterpartyChannelId: TendermintLightClientID,
+		Signer:                Relayer,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to register counterparty: %v", err)
+	}
+
+	if registerCounterPartyResp.Code != 0 {
+		return fmt.Errorf("failed to register counterparty: %v", registerCounterPartyResp.RawLog)
 	}
 
 	return nil
