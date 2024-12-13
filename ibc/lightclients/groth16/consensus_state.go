@@ -19,9 +19,9 @@ func NewConsensusState(
 	}
 }
 
-// ClientType returns Tendermint
+// ClientType returns groth16
 func (ConsensusState) ClientType() string {
-	return exported.Tendermint
+	return Groth16ClientType
 }
 
 // GetRoot returns the commitment Root for the specific
