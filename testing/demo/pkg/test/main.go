@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
-
 	"math/big"
 	"os"
 	"os/exec"
@@ -73,7 +72,7 @@ func DeployContracts() error {
 	// Parse JSON into a map
 	var runLatest map[string]interface{}
 	if err := json.Unmarshal(file, &runLatest); err != nil {
-		fmt.Errorf("Error unmarshalling JSON: %v", err)
+		return fmt.Errorf("Error unmarshalling JSON: %w", err)
 	}
 
 	// Extract and print the contract addresses
@@ -97,7 +96,7 @@ func DeployContracts() error {
 
 	var addresses ContractAddresses
 	if err := json.Unmarshal([]byte(unescapedValue), &addresses); err != nil {
-		return fmt.Errorf("error unmarshalling contract addresses:", err)
+		return fmt.Errorf("error unmarshalling contract addresses: %w", err)
 	}
 
 	fmt.Println("Contract Addresses:", addresses)
@@ -264,5 +263,8 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+	if err := InitializeLightClient(); err != nil {
+		fmt.Println(err)
 	}
 }
