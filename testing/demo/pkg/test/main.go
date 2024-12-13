@@ -72,7 +72,7 @@ func DeployContracts() error {
 	// Parse JSON into a map
 	var runLatest map[string]interface{}
 	if err := json.Unmarshal(file, &runLatest); err != nil {
-		fmt.Errorf("Error unmarshalling JSON: %v", err)
+		return fmt.Errorf("Error unmarshalling JSON: %w", err)
 	}
 
 	// Extract and print the contract addresses

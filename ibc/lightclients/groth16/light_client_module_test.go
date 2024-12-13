@@ -13,7 +13,6 @@ import (
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/lightclients/groth16"
 	"github.com/celestiaorg/celestia-zkevm-ibc-demo/ibc/mpt"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -255,7 +254,8 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 
 	// get the proof for the key
 	proof := mpt.ProofList{}
-	trie.Prove(mptKey, &proof)
+	err := trie.Prove(mptKey, &proof)
+	suite.Require().NoError(err)
 
 	proofBytes, err := mpt.ProofListToBytes(proof)
 	suite.Require().NoError(err)
@@ -276,7 +276,7 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 
 	// set consensus state to the trie root
 	consensusState := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
-	root := types.NewMerkleRoot(trie.Hash().Bytes())
+	root := commitmenttypes.NewMerkleRoot(trie.Hash().Bytes())
 	newConsState := ibctm.ConsensusState{
 		Timestamp: consensusState.Timestamp,
 		Root:      root,
