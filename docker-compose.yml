@@ -80,6 +80,12 @@ services:
     depends_on:
       celestia-network-validator:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "AUTH_TOKEN=$(celestia bridge auth read --node.store=/home/celestia 2>/dev/null | tail -n 1); curl --max-time 0.5 -s -X POST -H \"Content-type: application/json\" -H \"Accept: application/json\" -H \"Authorization: Bearer $AUTH_TOKEN\" -d '{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"header.SyncWait\",\"params\":[]}' \"http://localhost:26658\"; if [ \"$?\" -eq 0 ]; then exit 0; else echo \"Catching up\"; exit 1; fi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks:
       - beacon-network
 
