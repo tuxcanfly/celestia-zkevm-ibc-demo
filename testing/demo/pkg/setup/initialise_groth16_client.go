@@ -48,7 +48,7 @@ func InitializeGroth16LightClientOnSimapp() error {
 
 	ethClient, err := ethclient.Dial("http://localhost:8545")
 	if err != nil {
-		return fmt.Errorf("failed to connect to Ethereum client: %v", err)
+		return fmt.Errorf("failed to connect to ethereum client: %v", err)
 	}
 
 	genesisBlock, latestBlock, err := getGenesisAndLatestBlock(ethClient)
