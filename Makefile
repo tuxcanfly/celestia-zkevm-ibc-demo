@@ -30,6 +30,7 @@ start:
 ## setup: sets up the IBC clients and channels
 setup:
 	@echo "--> Setting up IBC Clients and Channels"
+	@go run ./testing/demo/pkg/setup/
 .PHONY: setup
 
 ## transfer: transfers tokens from simapp network to the EVM rollup
