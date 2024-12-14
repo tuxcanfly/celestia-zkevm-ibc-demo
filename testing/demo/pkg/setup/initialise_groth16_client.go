@@ -360,9 +360,3 @@ func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAtt
 	}
 	return attributes[idx], true
 }
-
-// func main() {
-// 	if err := InitializeLightClient(); err != nil {
-// 		fmt.Println(err)
-// 	}
-// }
