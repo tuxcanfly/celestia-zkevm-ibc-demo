@@ -194,7 +194,6 @@ func createCounterpartyOnSimapp() error {
 	return nil
 }
 
-
 func GetTransactOpts(key *ecdsa.PrivateKey, chainID *big.Int, ethClient *ethclient.Client) *bind.TransactOpts {
 	fromAddress := crypto.PubkeyToAddress(key.PublicKey)
 	nonce, err := ethClient.PendingNonceAt(context.Background(), fromAddress)
