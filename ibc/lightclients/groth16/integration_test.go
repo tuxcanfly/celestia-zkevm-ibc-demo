@@ -48,8 +48,7 @@ type Grtoth16Config struct {
 }
 
 func NewGrtoth16Config() *Grtoth16Config {
-	return &Grtoth16Config{
-	}
+	return &Grtoth16Config{}
 }
 
 func (*Grtoth16Config) GetClientType() string {

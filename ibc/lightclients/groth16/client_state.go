@@ -32,10 +32,10 @@ func NewClientState(
 	genesisStateRoot []byte,
 ) *ClientState {
 	return &ClientState{
-		LatestHeight:               latestHeight,
+		LatestHeight: latestHeight,
 		// StateTransitionVerifierKey: stateTransitionVerifierKey,
-		CodeCommitment:             codeCommitment,
-		GenesisStateRoot:           genesisStateRoot,
+		CodeCommitment:   codeCommitment,
+		GenesisStateRoot: genesisStateRoot,
 	}
 }
 
@@ -45,7 +45,7 @@ func (cs ClientState) ClientType() string {
 }
 
 // GetLatestHeight returns latest block height.
-func (cs ClientState) GetLatestHeight() exported.Height {
+func (cs ClientState) GetLatestClientHeight() exported.Height {
 	return clienttypes.Height{
 		RevisionNumber: 0,
 		RevisionHeight: cs.LatestHeight,
@@ -88,7 +88,7 @@ func (cs ClientState) initialize(ctx context.Context, _ codec.BinaryCodec, clien
 			&ConsensusState{}, consState)
 	}
 	// set metadata for initial consensus state.
-	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
+	setConsensusMetadata(ctx, clientStore, cs.GetLatestClientHeight())
 	return nil
 }
 

@@ -9,8 +9,13 @@ prost = "0.12"
 tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 tonic-reflection = "0.10"
-tendermint-rpc = "0.40.0"
+tendermint-rpc = { version = "0.40.0", features = ["http-client"] }
 ibc-client-tendermint-types = "0.56.0"
+reqwest = "0.12.9"
+alloy = { version = "0.7", default-features = false }
+ibc-eureka-solidity-types = { path = "../../solidity-ibc-eureka/packages/solidity", features = ["rpc"]}
+sp1-ics07-tendermint-prover = { path = "../../solidity-ibc-eureka/packages/prover"}
+sp1-ics07-tendermint-utils = { path = "../../solidity-ibc-eureka/packages/utils", default-features = false }
 
 [build-dependencies]
 tonic-build = "0.10"

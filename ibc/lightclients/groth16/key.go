@@ -7,14 +7,6 @@ import (
 	"github.com/consensys/gnark/backend/groth16"
 )
 
-func (cs *ClientState) GetStateTransitionVerifierKey() (groth16.VerifyingKey, error) {
-	vk, err := DeserializeVerifyingKey(cs.StateTransitionVerifierKey)
-	if err != nil {
-		return nil, err
-	}
-	return vk, nil
-}
-
 func SerializeVerifyingKey(vk groth16.VerifyingKey) ([]byte, error) {
 	var buf bytes.Buffer
 	_, err := vk.WriteTo(&buf)

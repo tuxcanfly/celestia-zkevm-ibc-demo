@@ -101,7 +101,7 @@ func SetupClientContext() (client.Context, error) {
 
 	// Chain-specific configurations
 	chainID := "zkibc-demo"
-	cometNodeURI := "http://localhost:5123"                                  // Comet RPC endpoint
+	cometNodeURI := "http://localhost:5123"                                // Comet RPC endpoint
 	appName := "celestia-zkevm-ibc-demo"                                   // Name of the application from the genesis file
 	grpcAddr := "localhost:9190"                                           // gRPC endpoint
 	homeDir := filepath.Join(home, "testing", "files", "simapp-validator") // Path to the keyring directory

@@ -57,5 +57,3 @@ func makeProvers(trie *gethtrie.Trie) []func(key []byte) *ProofList {
 	})
 	return provers
 }
-
-

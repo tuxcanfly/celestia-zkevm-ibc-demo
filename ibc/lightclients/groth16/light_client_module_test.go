@@ -234,10 +234,9 @@ func (suite *Groth16TestSuite) TestVerifyMembership() {
 	testingpath.Setup()
 
 	// suite.chainA.NewEndpoint(testingpath.EndpointA.ClientID, testingpath.EndpointA.ConnectionID, testingpath.EndpointA.ChannelID)
-	
+
 	// endpointB := ibctesting.NewEndpoint(suite.chainB, NewGrtoth16Config(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
 	// endpointA := ibctesting.NewEndpoint(suite.chainA,  NewGrtoth16Config(), testingpath.EndpointA.ChannelID)
-
 
 	latestHeight := testingpath.EndpointB.GetClientLatestHeight()
 	key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, latestHeight)
