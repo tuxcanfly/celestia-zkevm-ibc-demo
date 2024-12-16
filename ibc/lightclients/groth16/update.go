@@ -29,7 +29,7 @@ func (cs *ClientState) VerifyClientMessage(
 	}
 }
 
-func (cs ClientState) verifyHeader(ctx context.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec,
+func (cs ClientState) verifyHeader(_ context.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec,
 	header *Header) error {
 	// sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 
