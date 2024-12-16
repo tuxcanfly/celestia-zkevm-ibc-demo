@@ -73,7 +73,7 @@ services:
       - ./testing/files/celestia-bridge:/testapp_files
       - ./.tmp/celestia-bridge:/home/celestia
     entrypoint: /testapp_files/entrypoint.sh
-    command: celestia bridge start --p2p.network private --core.ip celestia-network-validator --rpc.addr 0.0.0.0 --rpc.port 26658 --keyring.keyname bridge --rpc.skip-auth
+    command: celestia bridge start --p2p.network private --core.ip celestia-network-validator --rpc.addr 0.0.0.0 --rpc.port 26658 --keyring.keyname bridge
     ports:
       - "26658:26658"
       - "2121:2121"
