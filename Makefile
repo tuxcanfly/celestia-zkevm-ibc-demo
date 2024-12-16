@@ -23,13 +23,14 @@ help: Makefile
 .PHONY: help
 
 ## start: spins up all processes needed for the demo
-start:
+start: stop
 	@docker compose up -d
 .PHONY: start
 
 ## setup: sets up the IBC clients and channels
 setup:
 	@echo "--> Setting up IBC Clients and Channels"
+	@go run ./testing/demo/pkg/setup/
 .PHONY: setup
 
 ## transfer: transfers tokens from simapp network to the EVM rollup
@@ -41,7 +42,9 @@ transfer:
 stop:
 	@echo "--> Stopping all processes"
 	@docker compose down
-	@rm -rfm /.tmp
+	@docker compose rm
+	@echo "--> Clearing tmp directory"
+	@rm -rf .tmp
 .PHONY: stop
 
 ## build: Build the simapp binary into the ./build directory.
