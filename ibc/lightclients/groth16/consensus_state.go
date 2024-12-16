@@ -1,3 +1,4 @@
+//nolint:govet
 package groth16
 
 import (
