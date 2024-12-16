@@ -41,7 +41,7 @@ For more information refer to the [architecture document](./ARCHITECTURE.md). No
 1. Copy the `.env` file into `./solidity-ibc-eureka`
 
     ```shell
-    cp .env.example .solidity-ibc-eureka/.env
+    cp .env.example ./solidity-ibc-eureka/.env
     ```
 
 1. Deploy the Tendermint light client smart contract on the EVM roll-up. Note: this may not be necessary.
