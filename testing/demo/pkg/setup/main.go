@@ -11,7 +11,7 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	err = SetupSp1TendermintClientAndChannelsOnReth()
+	err = InitializeSp1TendermintLightClientOnReth()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

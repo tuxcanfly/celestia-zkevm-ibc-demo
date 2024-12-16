@@ -39,7 +39,7 @@ type ContractAddresses struct {
 	ICSCore         string `json:"icsCore"`
 }
 
-func SetupSp1TendermintClientAndChannelsOnReth() error {
+func InitializeSp1TendermintLightClientOnReth() error {
 	fmt.Println("Deploying IBC smart contracts on the reth node...")
 
 	if err := runDeploymentCommand(); err != nil {
