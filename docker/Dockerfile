@@ -1,8 +1,8 @@
-# Stage 1: generate txsim binary
-FROM --platform=$BUILDPLATFORM docker.io/golang:1.23.1-alpine3.20 as builder
+# Stage 1: Generate the simapp binary (simd)
+FROM docker.io/golang:1.23.1-alpine3.20 as builder
 
-ARG TARGETOS
-ARG TARGETARCH
+ENV TARGETOS=linux
+ENV TARGETARCH=arm64
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
@@ -19,7 +19,7 @@ WORKDIR /celestia_zkevm_ibc_demo
 
 RUN uname -a &&\
     CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    make build
+    make build-simapp
 
 # Stage 2: create a minimal image with the binary
 FROM docker.io/alpine:3.20
