@@ -56,18 +56,18 @@ stop:
 	@rm -rf .tmp
 .PHONY: stop
 
-## build: Build the simapp binary into the ./build directory.
+## build-simapp: Build the simapp binary into the ./build directory.
 build-simapp: mod
 	@cd ./simapp/simd/
 	@mkdir -p build/
 	@go build $(BUILD_FLAGS) -o build/ ./simapp/simd/
-.PHONY: build
+.PHONY: build-simapp
 
-## install: Build and install the simapp binary into the $GOPATH/bin directory.
+## install-simapp: Build and install the simapp binary into the $GOPATH/bin directory.
 install-simapp:
 	@echo "--> Installing simd"
 	@go install $(BUILD_FLAGS) ./simapp/simd/
-.PHONY: install
+.PHONY: install-simapp
 
 ## mod: Update all go.mod files.
 mod:
@@ -149,7 +149,7 @@ test:
 	@go test -timeout 30m ./...
 .PHONY: test
 
-## run-simapp: Initializes a single local node network. It is useful for testing and development. Try make install && make init-simapp && simd start
+## run-simapp: Initializes a single local node network. It is useful for testing and development.
 run-simapp:
 # Warning this will remove all data in simapp home directory
 	./scripts/init-simapp.sh
