@@ -22,6 +22,12 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 .PHONY: help
 
+install-dependencies:
+	@echo "--> Setting up Solidity IBC Eureka submodule"
+	@cd ./solidity-ibc-eureka && bun install && just install-operator
+	@go run ./testing/demo/pkg/setup-env
+.PHONY: install-dependencies
+
 ## start: spins up all processes needed for the demo
 start: stop
 	@docker compose up -d
@@ -29,6 +35,8 @@ start: stop
 
 ## setup: sets up the IBC clients and channels
 setup:
+	@echo "--> Deploying tendermint light client contract on the EVM roll-up"
+	@cd ./solidity-ibc-eureka/scripts && just deploy-sp1-ics07
 	@echo "--> Setting up IBC Clients and Channels"
 	@go run ./testing/demo/pkg/setup/
 .PHONY: setup
@@ -146,11 +154,3 @@ run-simapp:
 	./scripts/init-simapp.sh
 .PHONY: run-simapp
 
-
-
-## deploy-contracts: Deploys the IBC smart contracts on the EVM roll-up.
-deploy-contracts:
-	@echo "--> Deploying IBC smart contracts"
-	@cd ./solidity-ibc-eureka/scripts && bun install
-	@cd ./solidity-ibc-eureka/scripts && forge script E2ETestDeploy.s.sol:E2ETestDeploy --broadcast
-.PHONY: deploy-contracts
