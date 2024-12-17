@@ -22,18 +22,19 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 .PHONY: help
 
+## install-dependencies: Install all dependencies needed for the demo.
 install-dependencies:
 	@echo "--> Setting up Solidity IBC Eureka submodule"
 	@cd ./solidity-ibc-eureka && bun install && just install-operator
 	@go run ./testing/demo/pkg/setup-env
 .PHONY: install-dependencies
 
-## start: spins up all processes needed for the demo
+## start: Start all processes needed for the demo.
 start: stop
 	@docker compose up -d
 .PHONY: start
 
-## setup: sets up the IBC clients and channels
+## setup: Set up the IBC clients and channels.
 setup:
 	@echo "--> Deploying tendermint light client contract on the EVM roll-up"
 	@cd ./solidity-ibc-eureka/scripts && just deploy-sp1-ics07
@@ -41,12 +42,12 @@ setup:
 	@go run ./testing/demo/pkg/setup/
 .PHONY: setup
 
-## transfer: transfers tokens from simapp network to the EVM rollup
+## transfer: Transfer tokens from simapp network to the EVM rollup.
 transfer:
 	@echo "--> Transferring tokens"
 .PHONY: transfer
 
-## stop: stops all processes and removes the tmp directory
+## stop: Stop all processes and removes the tmp directory.
 stop:
 	@echo "--> Stopping all processes"
 	@docker compose down
@@ -153,4 +154,3 @@ run-simapp:
 # Warning this will remove all data in simapp home directory
 	./scripts/init-simapp.sh
 .PHONY: run-simapp
-
