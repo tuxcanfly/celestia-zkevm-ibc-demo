@@ -23,7 +23,7 @@ help: Makefile
 .PHONY: help
 
 ## install-dependencies: Install all dependencies needed for the demo.
-install-dependencies: build-simapp-docker
+install-dependencies:
 	@echo "--> Setting up Solidity IBC Eureka submodule"
 	@cd ./solidity-ibc-eureka && bun install && just install-operator
 	@go run ./testing/demo/pkg/setup-env
