@@ -39,8 +39,7 @@ func main() {
 }
 
 func SubmitMsgTransfer() error {
-	fmt.Printf("Submitting MsgTransfer...\n")
-
+	fmt.Printf("Setting up client context...\n")
 	clientCtx, err := utils.SetupClientContext()
 	if err != nil {
 		return fmt.Errorf("failed to setup client context: %v", err)
@@ -52,11 +51,13 @@ func SubmitMsgTransfer() error {
 }
 
 func submitMsgTransfer(clientCtx client.Context) error {
+	fmt.Printf("Creating MsgTransfer...\n")
 	msgTransfer, err := createMsgTransfer()
 	if err != nil {
 		return fmt.Errorf("failed to create MsgTransfer: %w", err)
 	}
 
+	fmt.Printf("Broadcasting MsgTransfer...\n")
 	response, err := utils.BroadcastMessages(clientCtx, relayer, 200_000, &msgTransfer)
 	if err != nil {
 		return fmt.Errorf("failed to broadcast MsgTransfer %w", err)
@@ -65,7 +66,7 @@ func submitMsgTransfer(clientCtx client.Context) error {
 	if response.Code != 0 {
 		return fmt.Errorf("failed to execute MsgTransfer %v", response.RawLog)
 	}
-
+	fmt.Printf("response: %v\n", response)
 	return nil
 }
 
