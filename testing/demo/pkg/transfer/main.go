@@ -24,6 +24,9 @@ const (
 
 	// denom is the denomination of the token on simapp
 	denom = "stake"
+
+	// amount is the amount of tokens to transfer
+	amount = 100
 )
 
 func main() {
@@ -67,9 +70,7 @@ func submitMsgTransfer(clientCtx client.Context) error {
 }
 
 func createMsgTransfer() (channeltypesv2.MsgSendPacket, error) {
-	timeout := uint64(time.Now().Add(30 * time.Minute).Unix())
-	coin := sdktypes.NewCoin(denom, math.NewInt(100))
-
+	coin := sdktypes.NewCoin(denom, math.NewInt(amount))
 	transferPayload := ics20lib.ICS20LibFungibleTokenPacketData{
 		Denom:    coin.Denom,
 		Amount:   coin.Amount.BigInt(),
@@ -88,11 +89,10 @@ func createMsgTransfer() (channeltypesv2.MsgSendPacket, error) {
 		Encoding:        transfertypes.EncodingABI,
 		Value:           transferBz,
 	}
-	msg := channeltypesv2.MsgSendPacket{
+	return channeltypesv2.MsgSendPacket{
 		SourceChannel:    ibctesting.FirstChannelID,
-		TimeoutTimestamp: timeout,
+		TimeoutTimestamp: uint64(time.Now().Add(30 * time.Minute).Unix()),
 		Payloads:         []channeltypesv2.Payload{payload},
 		Signer:           relayer,
-	}
-	return msg, nil
+	}, nil
 }
