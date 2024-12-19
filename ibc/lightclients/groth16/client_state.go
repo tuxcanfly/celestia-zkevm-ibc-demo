@@ -34,7 +34,7 @@ func NewClientState(latestHeight uint64, stateTransitionVerifierKey []byte, stat
 	}
 }
 
-// ClientType returns groth16 client type.
+// ClientType returns the groth16 client type.
 func (cs ClientState) ClientType() string {
 	return Groth16ClientType
 }
