@@ -41,7 +41,7 @@ type ContractAddresses struct {
 }
 
 func InitializeSp1TendermintLightClientOnReth() error {
-	fmt.Println("Deploying IBC smart contracts on the reth node...")
+	fmt.Println("Deploying IBC smart contracts on reth node...")
 
 	if err := runDeploymentCommand(); err != nil {
 		return err
@@ -51,7 +51,7 @@ func InitializeSp1TendermintLightClientOnReth() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Contract Addresses:", addresses)
+	fmt.Printf("Contract Addresses: %v\n", addresses)
 
 	ethClient, err := ethclient.Dial("http://localhost:8545")
 	if err != nil {
@@ -61,13 +61,13 @@ func InitializeSp1TendermintLightClientOnReth() error {
 	if err := createChannelAndCounterpartyOnReth(addresses, ethClient); err != nil {
 		return err
 	}
-	fmt.Println("Channel and counterparty created successfully on reth node")
+	fmt.Println("Created channel and counterparty on reth node.")
 
 	if err := createCounterpartyOnSimapp(); err != nil {
 		return err
 	}
-	fmt.Println("Counterparty created successfully on simapp")
 
+	fmt.Println("Created counterparty on simapp.")
 	return nil
 
 }
@@ -179,10 +179,10 @@ func createCounterpartyOnSimapp() error {
 		return fmt.Errorf("failed to setup client context: %v", err)
 	}
 
-	registerCounterPartyResp, err := utils.BroadcastMessages(clientCtx, Relayer, 200_000, &channeltypesv2.MsgRegisterCounterparty{
+	registerCounterPartyResp, err := utils.BroadcastMessages(clientCtx, relayer, 200_000, &channeltypesv2.MsgRegisterCounterparty{
 		ChannelId:             channelId,
 		CounterpartyChannelId: TendermintLightClientID,
-		Signer:                Relayer,
+		Signer:                relayer,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to register counterparty: %v", err)
@@ -233,7 +233,6 @@ func GetTxReceipt(ctx context.Context, ethClient *ethclient.Client, hash ethcomm
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("made it here")
 	return receipt
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 	"slices"
@@ -21,17 +20,15 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-// relayer address registered in simapp
-const Relayer = "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q"
-
-var Groth16ClientId string
+// relayer is the address registered on simapp
+const relayer = "cosmos1ltvzpwf3eg8e9s7wzleqdmw02lesrdex9jgt0q"
 
 func InitializeGroth16LightClientOnSimapp() error {
-	fmt.Println("Initializing the groth16 light client")
+	fmt.Println("Initializing the Groth16 light client on simapp...")
 
 	ethClient, err := ethclient.Dial("http://localhost:8545")
 	if err != nil {
-		return fmt.Errorf("failed to connect to ethereum client: %v", err)
+		return fmt.Errorf("failed to connect to Ethereum client: %v", err)
 	}
 
 	genesisBlock, latestBlock, err := getGenesisAndLatestBlock(ethClient)
@@ -49,15 +46,14 @@ func InitializeGroth16LightClientOnSimapp() error {
 		return fmt.Errorf("failed to setup client context: %v", err)
 	}
 
-	if err := createClientOnSimapp(clientCtx, clientState, consensusState); err != nil {
+	clientId, err := createClientOnSimapp(clientCtx, clientState, consensusState)
+	if err != nil {
 		return err
 	}
-	fmt.Println("Groth16 client created successfully on simapp")
 
-	if err := createChannelOnSimapp(clientCtx); err != nil {
+	if err := createChannelOnSimapp(clientCtx, clientId); err != nil {
 		return err
 	}
-	fmt.Println("Channel created successfully on simapp")
 
 	return nil
 }
@@ -93,66 +89,69 @@ func getGenesisAndLatestBlock(ethClient *ethclient.Client) (*ethtypes.Block, *et
 	return genesisBlock, latestBlock, nil
 }
 
-func createClientOnSimapp(clientCtx client.Context, clientState, consensusState *cdctypes.Any) error {
+func createClientOnSimapp(clientCtx client.Context, clientState, consensusState *cdctypes.Any) (clientId string, err error) {
 	createClientMsg := &clienttypes.MsgCreateClient{
 		ClientState:    clientState,
 		ConsensusState: consensusState,
-		Signer:         Relayer,
+		Signer:         relayer,
 	}
 
 	if clientState.GetCachedValue().(*groth16.ClientState).ClientType() != consensusState.GetCachedValue().(*groth16.ConsensusState).ClientType() {
 		fmt.Println("Client and consensus state client types do not match")
 	}
 
-	createClientMsgResponse, err := utils.BroadcastMessages(clientCtx, Relayer, 200_000, createClientMsg)
+	createClientMsgResponse, err := utils.BroadcastMessages(clientCtx, relayer, 200_000, createClientMsg)
 	if err != nil {
-		return fmt.Errorf("failed to broadcast the initial client creation message: %v", err)
+		return "", fmt.Errorf("failed to broadcast the initial client creation message: %v", err)
 	}
 
 	if createClientMsgResponse.Code != 0 {
-		return fmt.Errorf("failed to create client: %v", createClientMsgResponse.RawLog)
+		return "", fmt.Errorf("failed to create client: %v", createClientMsgResponse.RawLog)
 	}
 
-	Groth16ClientId, err = ParseClientIDFromEvents(createClientMsgResponse.Events)
+	clientId, err = parseClientIDFromEvents(createClientMsgResponse.Events)
 	if err != nil {
-		return fmt.Errorf("failed to parse client id from events: %v", err)
+		return "", fmt.Errorf("failed to parse client id from events: %v", err)
 	}
 
-	return nil
+	fmt.Printf("Created Groth16 client with clientId %v on simapp.\n", clientId)
+	return clientId, nil
 }
 
-func createChannelOnSimapp(clientCtx client.Context) error {
+func createChannelOnSimapp(clientCtx client.Context, clientId string) error {
 	cosmosMerklePathPrefix := commitmenttypesv2.NewMerklePath([]byte("simd"))
-	msgCreateChannelResp, err := utils.BroadcastMessages(clientCtx, Relayer, 200_000, &channeltypesv2.MsgCreateChannel{
-		ClientId:         Groth16ClientId,
+	msg := channeltypesv2.MsgCreateChannel{
+		ClientId:         clientId,
 		MerklePathPrefix: cosmosMerklePathPrefix,
-		Signer:           Relayer,
-	})
+		Signer:           relayer,
+	}
+	response, err := utils.BroadcastMessages(clientCtx, relayer, 200_000, &msg)
 	if err != nil {
 		return fmt.Errorf("failed to create channel: %v", err)
 	}
-	if msgCreateChannelResp.Code != 0 {
-		return fmt.Errorf("failed to create channel: %v", msgCreateChannelResp.RawLog)
+	if response.Code != 0 {
+		return fmt.Errorf("failed to create channel: %v", response.RawLog)
 	}
 
+	fmt.Println("Created channel on simapp.")
 	return nil
 }
 
-// ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
-// client identifier.
-func ParseClientIDFromEvents(events []abci.Event) (string, error) {
-	for _, ev := range events {
-		if ev.Type == clienttypes.EventTypeCreateClient {
-			if attribute, found := attributeByKey(ev.Attributes, clienttypes.AttributeKeyClientID); found {
+// parseClientIDFromEvents parses events emitted from a MsgCreateClient and
+// returns the client identifier.
+func parseClientIDFromEvents(events []abci.Event) (string, error) {
+	for _, event := range events {
+		if event.Type == clienttypes.EventTypeCreateClient {
+			if attribute, isFound := getAttributeByKey(event.Attributes, clienttypes.AttributeKeyClientID); isFound {
 				return attribute.Value, nil
 			}
 		}
 	}
-	return "", errors.New("client identifier event attribute not found")
+	return "", fmt.Errorf("client identifier event attribute not found")
 }
 
-// attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
-func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAttribute, bool) {
+// getAttributeByKey returns the first even attribute with the given key.
+func getAttributeByKey(attributes []abci.EventAttribute, key string) (ea abci.EventAttribute, isFound bool) {
 	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
 	if idx == -1 {
 		return abci.EventAttribute{}, false

@@ -48,12 +48,12 @@ transfer:
 	@go run ./testing/demo/pkg/transfer/
 .PHONY: transfer
 
-## stop: Stop all processes and removes the tmp directory.
+## stop: Stop all processes and remove the tmp directory.
 stop:
 	@echo "--> Stopping all processes"
 	@docker compose down
 	@docker compose rm
-	@echo "--> Clearing tmp directory"
+	@echo "--> Removing the tmp directory"
 	@rm -rf .tmp
 .PHONY: stop
 
