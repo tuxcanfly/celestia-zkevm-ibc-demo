@@ -1,3 +1,4 @@
+//nolint:govet
 package groth16
 
 import (
@@ -43,8 +44,8 @@ func (cs ClientState) ClientType() string {
 	return Groth16ClientType
 }
 
-// GetLatestHeight returns latest block height.
-func (cs ClientState) GetLatestHeight() exported.Height {
+// GetLatestClientHeight returns latest block height.
+func (cs ClientState) GetLatestClientHeight() exported.Height {
 	return clienttypes.Height{
 		RevisionNumber: 0,
 		RevisionHeight: cs.LatestHeight,
@@ -89,7 +90,7 @@ func (cs ClientState) initialize(ctx context.Context, cdc codec.BinaryCodec, cli
 	// TODO: should we be setting consensus state? probably (nina)
 	setClientState(clientStore, cdc, &cs)
 	// set metadata for initial consensus state.
-	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
+	setConsensusMetadata(ctx, clientStore, cs.GetLatestClientHeight())
 	return nil
 }
 

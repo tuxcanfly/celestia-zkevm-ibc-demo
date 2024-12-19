@@ -1,3 +1,4 @@
+//nolint:govet
 package groth16
 
 import (
@@ -13,6 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // VerifyClientMessage checks if the clientMessage is of type Header
@@ -33,7 +35,7 @@ func (cs ClientState) verifyHeader(_ context.Context, clientStore storetypes.KVS
 	// sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 
 	// get consensus state from clientStore for trusted height
-	_, err := GetConsensusState(clientStore, cdc, header.GetTrustedHeight())
+	_, err := GetConsensusState(clientStore, cdc, clienttypes.NewHeight(0, uint64(header.TrustedHeight)))
 	if err != nil {
 		return sdkerrors.Wrapf(
 			err, "could not get consensus state from clientstore at TrustedHeight: %d", header.TrustedHeight,
@@ -41,7 +43,7 @@ func (cs ClientState) verifyHeader(_ context.Context, clientStore storetypes.KVS
 	}
 
 	// assert header height is newer than consensus state
-	if header.GetHeight().LTE(header.GetTrustedHeight()) {
+	if header.GetHeight().LTE(clienttypes.NewHeight(0, uint64(header.TrustedHeight))) {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"header height ≤ consensus state height (%d ≤ %d)", header.GetHeight(), header.TrustedHeight,
@@ -106,12 +108,12 @@ func (cs ClientState) UpdateState(
 		return []exported.Height{header.GetHeight()}
 	}
 
-	trustedConsensusState, err := GetConsensusState(clientStore, cdc, header.GetTrustedHeight())
+	trustedConsensusState, err := GetConsensusState(clientStore, cdc, clienttypes.NewHeight(0, uint64(header.TrustedHeight)))
 	if err != nil {
 		panic(fmt.Sprintf("failed to retrieve trusted consensus state: %s", err))
 	}
 
-	vk, err := cs.GetStateTransitionVerifierKey()
+	vk, err := DeserializeVerifyingKey(cs.StateTransitionVerifierKey)
 	if err != nil {
 		return []exported.Height{}
 	}
@@ -178,8 +180,8 @@ func (cs ClientState) UpdateState(
 
 	// newClientState, consensusState := update(sdkCtx, clientStore, &cs, header)
 	newConsensusState := &ConsensusState{
-		Timestamp: sdkCtx.BlockTime(), // this should really be the Celestia block time at the newHeight
-		StateRoot: header.NewStateRoot,
+		HeaderTimestamp: timestamppb.New(sdkCtx.BlockTime()), // this should really be the Celestia block time at the newHeight
+		StateRoot:       header.NewStateRoot,
 	}
 
 	// Q: do we need to set client state with updated height?

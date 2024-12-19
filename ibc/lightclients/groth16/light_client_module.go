@@ -145,7 +145,7 @@ func (l LightClientModule) LatestHeight(ctx context.Context, clientID string) ex
 		return clienttypes.ZeroHeight()
 	}
 
-	return clientState.GetLatestHeight()
+	return clientState.GetLatestClientHeight()
 }
 
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the clientState.getTimestampAtHeight method.
@@ -219,8 +219,8 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 	}
 
 	// last height of current counterparty chain must be client's latest height
-	lastHeight := clientState.GetLatestHeight()
-	if !newClientState.GetLatestHeight().GT(lastHeight) {
+	lastHeight := clientState.GetLatestClientHeight()
+	if !newClientState.GetLatestClientHeight().GT(lastHeight) {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %d must be at greater than current client height %d", newClientState.LatestHeight, lastHeight)
 	}
 
