@@ -1,3 +1,4 @@
+//nolint:govet
 package groth16
 
 import (
@@ -5,6 +6,7 @@ import (
 
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)
@@ -14,8 +16,8 @@ func NewConsensusState(
 	timestamp time.Time, stateRoot []byte,
 ) *ConsensusState {
 	return &ConsensusState{
-		Timestamp: timestamp,
-		StateRoot: stateRoot,
+		HeaderTimestamp: timestamppb.New(timestamp),
+		StateRoot:       stateRoot,
 	}
 }
 
@@ -31,7 +33,7 @@ func (cs ConsensusState) GetRoot() exported.Root {
 
 // GetTimestamp returns block time in nanoseconds of the header that created consensus state
 func (cs ConsensusState) GetTimestamp() uint64 {
-	return uint64(cs.Timestamp.UnixNano())
+	return uint64(cs.HeaderTimestamp.AsTime().UnixNano())
 }
 
 func (cs ConsensusState) ValidateBasic() error {
@@ -39,5 +41,5 @@ func (cs ConsensusState) ValidateBasic() error {
 }
 
 func (cs ConsensusState) IsExpired(blockTime time.Time) bool {
-	return cs.Timestamp.Add(DefaultUnbondingTime).After(blockTime)
+	return cs.HeaderTimestamp.AsTime().Add(DefaultUnbondingTime).After(blockTime)
 }

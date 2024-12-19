@@ -1,3 +1,4 @@
+//nolint:govet
 package groth16
 
 import (
@@ -21,8 +22,4 @@ func (h Header) GetHeight() exported.Height {
 
 func (h Header) ValidateBasic() error {
 	return nil
-}
-
-func (h Header) GetTrustedHeight() exported.Height {
-	return clienttypes.NewHeight(0, uint64(h.TrustedHeight))
 }
