@@ -30,7 +30,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// SetupClientContext initializes a Cosmos SDK ClientContext
+// SetupClientContext returns a Cosmos SDK client context
 func SetupClientContext() (client.Context, error) {
 	// Get the user's home directory
 	home, err := os.Getwd()
@@ -64,7 +64,6 @@ func SetupClientContext() (client.Context, error) {
 	channeltypesv2.RegisterInterfaces(interfaceRegistry)
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 
-	// Keyring setup
 	kr, err := keyring.New(appName, keyring.BackendTest, homeDir, nil, appCodec)
 	if err != nil {
 		return client.Context{}, fmt.Errorf("failed to initialize keyring: %v", err)
@@ -99,7 +98,6 @@ func SetupClientContext() (client.Context, error) {
 		return client.Context{}, err
 	}
 
-	// Initialize ClientContext
 	clientCtx := client.Context{}.
 		WithChainID(chainID).
 		WithKeyring(kr).
@@ -136,7 +134,7 @@ func GetFactory(clientContext client.Context, user string, factoryOptions tx.Fac
 	return defaultTxFactory(clientContext, account), nil
 }
 
-// defaultTxFactory creates a new Factory with default configuration.
+// defaultTxFactory returns a new tx factory with default configuration.
 func defaultTxFactory(clientCtx client.Context, account client.Account) tx.Factory {
 	return tx.Factory{}.
 		WithAccountNumber(account.GetAccountNumber()).
@@ -152,7 +150,7 @@ func defaultTxFactory(clientCtx client.Context, account client.Account) tx.Facto
 		WithSimulateAndExecute(false)
 }
 
-// BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
+// BroadcastMessages creates a tx from the provided messages and signs them on behalf of the provided user.
 func BroadcastMessages(clientContext client.Context, user string, gas uint64, msgs ...interface {
 	ProtoMessage()
 	Reset()

@@ -64,6 +64,10 @@ build-simapp: mod
 	@go build $(BUILD_FLAGS) -o build/ ./simapp/simd/
 .PHONY: build-simapp
 
+## build: Build the simapp binary.
+build: build-simapp
+.PHONY: build
+
 ## install-simapp: Build and install the simapp binary into the $GOPATH/bin directory.
 install-simapp:
 	@echo "--> Installing simd"
@@ -107,10 +111,14 @@ proto-format:
 .PHONY: proto-format
 
 ## build-simapp-docker: Build the simapp docker image from the current branch. Requires docker.
-build-simapp-docker:
+build-simapp-docker: build-simapp
 	@echo "--> Building Docker image"
 	$(DOCKER) build -t $(GHCR_REPO) -f docker/Dockerfile .
 .PHONY: build-simapp-docker
+
+## docker: Build the simapp Docker image.
+docker: build-simapp-docker
+.PHONY: docker
 
 ## publish-simapp-docker: Publish the simapp docker image to GHCR. Requires Docker and authentication.
 publish-simapp-docker:

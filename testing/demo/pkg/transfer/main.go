@@ -45,7 +45,10 @@ func SubmitMsgTransfer() error {
 		return fmt.Errorf("failed to setup client context: %v", err)
 	}
 
-	submitMsgTransfer(clientCtx)
+	err = submitMsgTransfer(clientCtx)
+	if err != nil {
+		return fmt.Errorf("failed to submit MsgTransfer: %v", err)
+	}
 
 	return nil
 }
@@ -56,6 +59,7 @@ func submitMsgTransfer(clientCtx client.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create MsgTransfer: %w", err)
 	}
+	fmt.Printf("msgTransfer %v\n", msgTransfer)
 
 	fmt.Printf("Broadcasting MsgTransfer...\n")
 	response, err := utils.BroadcastMessages(clientCtx, relayer, 200_000, &msgTransfer)
@@ -83,6 +87,7 @@ func createMsgTransfer() (channeltypesv2.MsgSendPacket, error) {
 	if err != nil {
 		return channeltypesv2.MsgSendPacket{}, err
 	}
+	fmt.Printf("transferBz: %v\n", transferBz)
 	payload := channeltypesv2.Payload{
 		SourcePort:      transfertypes.PortID,
 		DestinationPort: transfertypes.PortID,
