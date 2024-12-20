@@ -79,7 +79,6 @@ docker logs reth
 rm -rf .tmp
 ```
 
-
 ## Contributing
 
 ### Proto Generation
@@ -87,6 +86,6 @@ rm -rf .tmp
 This repo uses protobuf to define the interfaces between several services. To help with this, this
 repo relies on [buf](https://buf.build). If you modify the protos you can regenerate them using:
 
-```
+```shell
 buf generate
 ```
