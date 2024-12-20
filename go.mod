@@ -240,7 +240,9 @@ replace (
 	// Replace ibc-go with the most recent commit on the feat/ibc-eureka branch.
 	// ea4e73629c55e35537467d9f032da5be8082b468 is the recent commit as of this writing.
 	// See https://github.com/cosmos/ibc-go/tree/feat/ibc-eureka
-	github.com/cosmos/ibc-go/v9 => github.com/cosmos/ibc-go/v9 v9.0.0-20241218142801-ea4e73629c55
+	// github.com/cosmos/ibc-go/v9 => github.com/cosmos/ibc-go/v9 v9.0.0-20241218142801-ea4e73629c55
+	// TODO: Remove the following replace after done debugging.
+	github.com/cosmos/ibc-go/v9 => github.com/rootulp/ibc-go/v9 v9.0.0-20241220193039-2f71b0ea9a2d
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
