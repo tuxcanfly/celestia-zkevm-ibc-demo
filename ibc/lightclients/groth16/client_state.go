@@ -80,17 +80,15 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	}
 }
 
-// initialize will check that initial consensus state is a groth16 consensus state
-// and will store ProcessedTime for initial consensus state as ctx.BlockTime()
-func (cs ClientState) initialize(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
-	if _, ok := consState.(*ConsensusState); !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
-			&ConsensusState{}, consState)
+func (cs ClientState) initialize(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, initialConsensusState exported.ConsensusState) error {
+	consensusState, ok := initialConsensusState.(*ConsensusState)
+	if !ok {
+		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T", &ConsensusState{}, initialConsensusState)
 	}
-	// TODO: should we be setting consensus state? probably (nina)
+	height := cs.GetLatestClientHeight()
+	SetConsensusState(clientStore, cdc, consensusState, height)
+	setConsensusMetadata(ctx, clientStore, height)
 	setClientState(clientStore, cdc, &cs)
-	// set metadata for initial consensus state.
-	setConsensusMetadata(ctx, clientStore, cs.GetLatestClientHeight())
 	return nil
 }
 
