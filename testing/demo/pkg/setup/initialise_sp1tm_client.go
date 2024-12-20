@@ -226,8 +226,6 @@ func GetTxReceipt(ctx context.Context, ethClient *ethclient.Client, hash ethcomm
 		if err != nil {
 			return false, nil
 		}
-		fmt.Println(receipt, "receipt")
-		fmt.Println(receipt != nil, "IS NOT NIL")
 		return receipt != nil, nil
 	})
 	if err != nil {
