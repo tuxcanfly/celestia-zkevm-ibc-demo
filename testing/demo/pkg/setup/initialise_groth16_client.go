@@ -150,7 +150,7 @@ func parseClientIDFromEvents(events []abci.Event) (string, error) {
 	return "", fmt.Errorf("client identifier event attribute not found")
 }
 
-// getAttributeByKey returns the first even attribute with the given key.
+// getAttributeByKey returns the first event attribute with the given key.
 func getAttributeByKey(attributes []abci.EventAttribute, key string) (ea abci.EventAttribute, isFound bool) {
 	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
 	if idx == -1 {

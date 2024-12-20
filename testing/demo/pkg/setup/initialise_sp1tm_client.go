@@ -41,7 +41,7 @@ type ContractAddresses struct {
 }
 
 func InitializeSp1TendermintLightClientOnReth() error {
-	fmt.Println("Deploying IBC smart contracts on reth node...")
+	fmt.Println("Deploying IBC smart contracts on the reth node...")
 
 	if err := runDeploymentCommand(); err != nil {
 		return err

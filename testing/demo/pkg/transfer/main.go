@@ -54,7 +54,6 @@ func SubmitMsgTransfer() error {
 }
 
 func submitMsgTransfer(clientCtx client.Context) error {
-	fmt.Printf("Creating MsgTransfer...\n")
 	msgTransfer, err := createMsgTransfer()
 	if err != nil {
 		return fmt.Errorf("failed to create MsgTransfer: %w", err)
@@ -69,7 +68,7 @@ func submitMsgTransfer(clientCtx client.Context) error {
 	if response.Code != 0 {
 		return fmt.Errorf("failed to execute MsgTransfer %v", response.RawLog)
 	}
-	fmt.Printf("response: %v\n", response)
+	fmt.Printf("Broadcasted MsgTransfer. Response code: %v, tx hash: %v\n", response.Code, response.TxHash)
 	return nil
 }
 
