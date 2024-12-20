@@ -38,7 +38,7 @@ start: stop
 setup:
 	@echo "--> Deploying tendermint light client contract on the EVM roll-up"
 	@cd ./solidity-ibc-eureka/scripts && just deploy-sp1-ics07
-	@echo "--> Setting up IBC Clients and Channels"
+	@echo "--> Creating IBC light clients and channel"
 	@go run ./testing/demo/pkg/setup/
 .PHONY: setup
 
@@ -163,3 +163,10 @@ run-simapp:
 # Warning this will remove all data in simapp home directory
 	./scripts/init-simapp.sh
 .PHONY: run-simapp
+
+## demo: Run the entire demo.
+demo:
+	@make start
+	@make setup
+	@make transfer
+.PHONY: demo
