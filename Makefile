@@ -121,6 +121,7 @@ build-celestia-prover-docker:
 	$(DOCKER) build -t $(CELESTIA_PROVER_GHCR_REPO) -f docker/celestia_prover.Dockerfile .
 .PHONY: build-celestia-prover-docker
 
+## publish-celestia-prover-docker: Publish the celestia prover docker image from the current branch. Requires docker.
 publish-celestia-prover-docker:
 	$(DOCKER) push $(CELESTIA_PROVER_GHCR_REPO)
 .PHONY: publish-celestia-prover-docker
