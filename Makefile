@@ -117,6 +117,7 @@ publish-simapp-docker:
 	$(DOCKER) push $(SIMAPP_GHCR_REPO)
 .PHONY: publish-simapp-docker
 
+## build-celestia-prover-docker: Build the celestia prover docker image from the current branch. Requires docker.
 build-celestia-prover-docker:
 	$(DOCKER) build -t $(CELESTIA_PROVER_GHCR_REPO) -f docker/celestia_prover.Dockerfile .
 .PHONY: build-celestia-prover-docker
