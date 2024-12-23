@@ -125,6 +125,6 @@ docker ps
 docker logs beacond
 docker logs celestia-network-bridge
 docker logs celestia-network-validator
-docker logs SimApp-validator
+docker logs simapp-validator
 docker logs reth
 ```
