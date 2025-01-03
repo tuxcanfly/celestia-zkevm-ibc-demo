@@ -53,6 +53,4 @@ USER ${USER_NAME}
 # Set the working directory to the home directory.
 WORKDIR ${CELESTIA_HOME}
 
-# https://docs.github.com/en/packages/learn-github-packages/connecting-a-repository-to-a-package#connecting-a-repository-to-a-container-image-using-the-command-line
-LABEL org.opencontainers.image.source=https://github.com/celestiaorg/celestia-zkevm-ibc-demo
 CMD [ "/bin/simd" ]
