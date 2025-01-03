@@ -31,4 +31,4 @@ jobs:
           context: .
           file: docker/simapp.Dockerfile
           push: true
-          tags: celestiaorg/celestia-zkevm-ibc-demo/simapp:latest
+          tags: ghcr.io/celestiaorg/celestia-zkevm-ibc-demo/simapp
