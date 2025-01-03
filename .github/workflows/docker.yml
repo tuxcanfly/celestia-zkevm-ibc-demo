@@ -4,14 +4,13 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  packages: write
-
 jobs:
   simapp:
     name: Build and push simapp Docker image
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
