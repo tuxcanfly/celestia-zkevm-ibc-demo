@@ -4,14 +4,32 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   simapp:
-    permissions:
-      contents: write
-      packages: write
-    uses: celestiaorg/.github/.github/workflows/reusable_dockerfile_pipeline.yml@v0.5.0
-    with:
-      dockerfile: docker/simapp.Dockerfile
-      packageName: celestia-zkevm-ibc-demo/simapp
-      checkout_ref: ${{ github.event.inputs.ref }}
-    secrets: inherit
+    name: Build and push simapp Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/simapp.Dockerfile
+          push: true
+          tags: ghcr.io/celestiaorg/celestia-zkevm-ibc-demo/simapp:latest
