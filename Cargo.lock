@@ -2075,6 +2075,7 @@ dependencies = [
  "prost",
  "serde",
  "tendermint-proto",
+ "tonic",
 ]
 
 [[package]]
@@ -3029,6 +3030,7 @@ dependencies = [
  "ibc-client-tendermint-types",
  "ibc-core-commitment-types",
  "ibc-eureka-solidity-types",
+ "ibc-proto 0.51.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost",
  "reqwest 0.12.9",
  "rsp-client-executor",
@@ -3942,6 +3944,7 @@ dependencies = [
  "serde",
  "subtle-encoding",
  "tendermint-proto",
+ "tonic",
 ]
 
 [[package]]
